@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sign In</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css"
+          integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js"
+            integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh"
+            crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js"
+            integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ"
+            crossorigin="anonymous"></script>
+</head>
+<body>
+
+    <div class="container">
+        <form action="{% if register %}/register{% else %}/login{% endif %}" method="post">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input class="form-control {% if error_username_invalid or error_username_taken or error_login %}is-invalid{% endif %}"
+                       type="text" name="username" id="username" placeholder="Username">
+                {% if error_username_invalid %}
+                    <div class="invalid-feedback">
+                        Username &quot;{{ username }}&quot; contains invalid characters.
+                    </div>
+                {% elif error_username_taken %}
+                    <div class="invalid-feedback">
+                        Username &quot;{{ username }}&quot; is already taken.
+                    </div>
+                {% endif %}
+                {% if register %}
+                    <small class="text-muted">
+                        Username can only contain:
+                        <ul>
+                            <li>Upper and lower case characters</li>
+                            <li>Numbers</li>
+                            <li>Underscores</li>
+                        </ul>
+                    </small>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input class="form-control {% if error_login or error_password_length%}is-invalid{% endif %}"
+                       type="password" id="password" name="password" placeholder="password">
+                {% if error_password_length %}
+                    <div class="invalid-feedback">
+                        Password must be at least {{ password_min_length }} characters.
+                    </div>
+                {% elif register %}
+                    <small class="text-muted">
+                        Password must be at least {{ password_min_length }} characters.
+                    </small>
+                {% endif %}
+            </div>
+            {% if error_login %}
+                <div class="alert alert-danger">
+                Invalid username or password.
+                </div>
+            {% endif %}
+            <button type="submit" class="btn btn-primary" name="login">Sign in</button>
+            <button type="submit" class="btn btn-secondary" name="register">Register</button>
+        </form>
+
+    </div>
+</body>
+</html>
