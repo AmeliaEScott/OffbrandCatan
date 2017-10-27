@@ -19,55 +19,172 @@
 <body>
 
     <div class="container">
+
+    {% if error_username_taken %}
+        <div class="alert alert-danger">Username {{ username }} is already taken.</div>
+    {% endif %}
+
+    {% if error_username_invalid %}
+        <div class="alert alert-danger">Username {{ username }} contains invalid characters.</div>
+    {% endif %}
+
+    {% if error_password_length %}
+        <div class="alert alert-danger">Password must be at least {{ password_min_length }} characters.</div>
+    {% endif %}
+
+    {% if error_login %}
+        <div class="alert alert-danger">Invalid username or password.</div>
+    {% endif %}
+
+        <ul class="nav nav-tabs">
+            <li class="nav-item">
+                <a class="nav-link active" href="#" id="signintab">Sign In</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" id="registertab">Register</a>
+            </li>
+        </ul>
         <form action="{% if register %}/register{% else %}/login{% endif %}" method="post">
+            <!-- Username Input -->
             <div class="form-group">
                 <label for="username">Username</label>
-                <input class="form-control {% if error_username_invalid or error_username_taken or error_login %}is-invalid{% endif %}"
-                       type="text" name="username" id="username" placeholder="Username">
-                {% if error_username_invalid %}
-                    <div class="invalid-feedback">
-                        Username &quot;{{ username }}&quot; contains invalid characters.
-                    </div>
-                {% elif error_username_taken %}
-                    <div class="invalid-feedback">
-                        Username &quot;{{ username }}&quot; is already taken.
-                    </div>
-                {% endif %}
-                {% if register %}
-                    <small class="text-muted">
-                        Username can only contain:
-                        <ul>
-                            <li>Upper and lower case characters</li>
-                            <li>Numbers</li>
-                            <li>Underscores</li>
-                        </ul>
-                    </small>
-                {% endif %}
+                <input class="form-control" type="text" name="username" id="username" placeholder="Username">
+                <small class="invalid-feedback hidden" id="usernameerror">
+                    Username can only contain:
+                    <ul>
+                        <li>Upper and lower case characters</li>
+                        <li>Numbers</li>
+                        <li>Underscores</li>
+                    </ul>
+                </small>
             </div>
 
+            <!-- Password input -->
             <div class="form-group">
                 <label for="password">Password</label>
-                <input class="form-control {% if error_login or error_password_length%}is-invalid{% endif %}"
+                <input class="form-control"
                        type="password" id="password" name="password" placeholder="password">
-                {% if error_password_length %}
-                    <div class="invalid-feedback">
-                        Password must be at least {{ password_min_length }} characters.
-                    </div>
-                {% elif register %}
-                    <small class="text-muted">
-                        Password must be at least {{ password_min_length }} characters.
-                    </small>
-                {% endif %}
+                <small class="invalid-feedback hidden" id="passwordlength">
+                    Password must be at least {{ password_min_length }} characters.
+                </small>
             </div>
-            {% if error_login %}
-                <div class="alert alert-danger">
-                Invalid username or password.
-                </div>
-            {% endif %}
-            <button type="submit" class="btn btn-primary" name="login">Sign in</button>
-            <button type="submit" class="btn btn-secondary" name="register">Register</button>
+
+            <!-- Confirm password input -->
+            <div class="form-group" id="confirmpasswordformgroup">
+                <label for="confirmpassword">Confirm Password</label>
+                <input id="confirmpassword" type="password" name="confirmpassword" class="form-control">
+                <small class="hidden invalid-feedback" id="passworderror">Does not match your password.</small>
+            </div>
+
+            <button type="submit" class="btn btn-primary" name="login" id="submitbutton">Sign in</button>
         </form>
 
     </div>
+
+    <script type="text/javascript">
+        "use strict";
+
+        var passwordInput;
+        var confirmPasswordInput;
+        var passwordError;
+        var submitButton;
+        var passwordLengthError;
+        var usernameInput;
+        var usernameError;
+        var confirmPasswordFormGroup;
+        var form;
+
+        var registerTab;
+        var signInTab;
+
+        var register = {% if register %} true; {% else %} false; {% endif %}
+
+        var usernameRegex = /^[a-z0-9_]+$/i;
+        var passwordLength = {{ password_min_length }};
+
+        $(document).ready(function(){
+            console.log("Document is ready");
+            passwordInput = $("#password");
+            confirmPasswordInput = $("#confirmpassword");
+            passwordError = $("#passworderror");
+            submitButton = $("#submitbutton");
+            passwordLengthError = $("#passwordlength");
+            usernameInput = $("#username");
+            usernameError = $("#usernameerror");
+            registerTab = $("#registertab");
+            signInTab = $("#signintab");
+            form = $("form");
+            confirmPasswordFormGroup = $("#confirmpasswordformgroup");
+            usernameInput.on('change keyup paste mouseup', validate);
+            confirmPasswordInput.on('change keyup paste mouseup', validate);
+            passwordInput.on('change keyup paste mouseup', validate);
+
+            signInTab.click(function(){
+                console.log("Sign in tab click");
+                signInTab.addClass("active");
+                registerTab.removeClass("active");
+                confirmPasswordFormGroup.hide();
+                submitButton.prop("name", "login");
+                submitButton.text("Sign In");
+                register = false;
+                validate();
+                form.prop("action", "/login");
+            });
+
+            registerTab.click(function(){
+                console.log("Register tab click");
+                registerTab.addClass("active");
+                signInTab.removeClass("active");
+                confirmPasswordFormGroup.show();
+                submitButton.prop("name", "register");
+                submitButton.text("Register");
+                register = true;
+                form.prop("action", "/register");
+            });
+
+            if(register){
+                registerTab.click();
+            }else{
+                signInTab.click();
+            }
+        });
+
+        function validate(){
+            var error = false;
+
+            if (usernameRegex.test(usernameInput.val()) || usernameInput.val().length === 0 || !register) {
+                usernameError.addClass("hidden");
+                usernameInput.removeClass("is-invalid");
+            } else {
+                usernameError.removeClass("hidden");
+                usernameInput.addClass("is-invalid");
+                error = true;
+            }
+
+            if (passwordInput.val() === confirmPasswordInput.val() || passwordInput.val().length === 0 || !register) {
+                passwordError.addClass("hidden");
+                confirmPasswordInput.removeClass("is-invalid");
+            } else {
+                passwordError.removeClass("hidden");
+                confirmPasswordInput.addClass("is-invalid");
+                error = true;
+            }
+
+            if (passwordInput.val().length >= passwordLength || passwordInput.val().length === 0 || !register) {
+                passwordLengthError.addClass("hidden");
+                passwordInput.removeClass("is-invalid");
+            } else {
+                passwordLengthError.removeClass("hidden");
+                passwordInput.addClass("is-invalid");
+                error = true;
+            }
+
+            if (!error || !register) {
+                submitButton.prop("disabled", false);
+            } else {
+                submitButton.prop("disabled", true);
+            }
+        }
+    </script>
 </body>
 </html>

@@ -35,12 +35,12 @@ def load_user(user_id):
 
 @login_page.route('/login', methods=['GET'])
 def login():
-    return render_template('signin.html')
+    return render_template('signin.html', password_min_length=PASSWORD_MIN_LENGTH)
 
 
 @login_page.route('/register', methods=['GET'])
 def register():
-    return render_template('signin.html', register=True)
+    return render_template('signin.html', register=True, password_min_length=PASSWORD_MIN_LENGTH)
 
 
 @login_page.route('/register', methods=['POST'])
@@ -58,14 +58,16 @@ def dologin():
             # Doing this to prevent timing attacks or whatever.
             # Idk, I don't actually know anything about security, I've just heard of timing attacks before.
             bcrypt.hashpw(b"pw", bcrypt.gensalt(PASSWORD_SALT_ROUNDS))
-            return render_template('signin.html', error_login=True, username=username)
+            return render_template('signin.html', error_login=True, username=username,
+                                   password_min_length=PASSWORD_MIN_LENGTH)
         elif bcrypt.checkpw(password.encode(), user.passwordhash):  # The password is correct
             current_app.logger.debug("Password is correct!")
             return processlogin(user)
         else:  # Username exists, wrong password
             # TODO: Count password attempts
             current_app.logger.debug("Password was incorrect.")
-            return render_template('signin.html', error_login=True, username=username)
+            return render_template('signin.html', error_login=True, username=username,
+                                   password_min_length=PASSWORD_MIN_LENGTH)
     elif register:
         error_username_invalid = len(username) > 100 or not re.match("^[a-zA-Z0-9_]+$", username)
         error_password_length = len(password) < PASSWORD_MIN_LENGTH or len(password) > 256
