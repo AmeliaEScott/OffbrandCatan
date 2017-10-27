@@ -20,21 +20,21 @@
 
     <div class="container">
 
-    {% if error_username_taken %}
-        <div class="alert alert-danger">Username {{ username }} is already taken.</div>
-    {% endif %}
+        {% if error_username_taken %}
+            <div class="alert alert-danger">Username &quot;{{ username }}&quot; is already taken.</div>
+        {% endif %}
 
-    {% if error_username_invalid %}
-        <div class="alert alert-danger">Username {{ username }} contains invalid characters.</div>
-    {% endif %}
+        {% if error_username_invalid %}
+            <div class="alert alert-danger">Username &quot;{{ username }}&quot; contains invalid characters.</div>
+        {% endif %}
 
-    {% if error_password_length %}
-        <div class="alert alert-danger">Password must be at least {{ password_min_length }} characters.</div>
-    {% endif %}
+        {% if error_password_length %}
+            <div class="alert alert-danger">Password must be at least {{ password_min_length }} characters.</div>
+        {% endif %}
 
-    {% if error_login %}
-        <div class="alert alert-danger">Invalid username or password.</div>
-    {% endif %}
+        {% if error_login %}
+            <div class="alert alert-danger">Invalid username or password.</div>
+        {% endif %}
 
         <ul class="nav nav-tabs">
             <li class="nav-item">
@@ -44,11 +44,14 @@
                 <a class="nav-link" href="#" id="registertab">Register</a>
             </li>
         </ul>
-        <form action="{% if register %}/register{% else %}/login{% endif %}" method="post">
+
+        <!-- The action of this form is changed when switching between the sign in and register tabs. -->
+        <form action="/login" method="post">
             <!-- Username Input -->
             <div class="form-group">
                 <label for="username">Username</label>
                 <input class="form-control" type="text" name="username" id="username" placeholder="Username">
+                <!-- This feedback is unhidden by form validation function -->
                 <small class="invalid-feedback hidden" id="usernameerror">
                     Username can only contain:
                     <ul>
@@ -62,8 +65,8 @@
             <!-- Password input -->
             <div class="form-group">
                 <label for="password">Password</label>
-                <input class="form-control"
-                       type="password" id="password" name="password" placeholder="password">
+                <input class="form-control" type="password" id="password" name="password" placeholder="password">
+                <!-- This feedback is unhidden by form validation function -->
                 <small class="invalid-feedback hidden" id="passwordlength">
                     Password must be at least {{ password_min_length }} characters.
                 </small>
@@ -73,10 +76,14 @@
             <div class="form-group" id="confirmpasswordformgroup">
                 <label for="confirmpassword">Confirm Password</label>
                 <input id="confirmpassword" type="password" name="confirmpassword" class="form-control">
+                <!-- This feedback is unhidden by form validation function -->
                 <small class="hidden invalid-feedback" id="passworderror">Does not match your password.</small>
             </div>
 
-            <button type="submit" class="btn btn-primary" name="login" id="submitbutton">Sign in</button>
+            <!-- The Sign In button is hidden when in the register tab, and shown when in the sign in tab -->
+            <button type="submit" class="btn btn-primary" id="loginbutton">Sign in</button>
+            <!-- And vice verse for the register button. -->
+            <button type="submit" class="btn btn-primary" id="registerbutton">Register</button>
         </form>
 
     </div>
@@ -87,7 +94,8 @@
         var passwordInput;
         var confirmPasswordInput;
         var passwordError;
-        var submitButton;
+        var loginButton;
+        var registerButton;
         var passwordLengthError;
         var usernameInput;
         var usernameError;
@@ -107,7 +115,8 @@
             passwordInput = $("#password");
             confirmPasswordInput = $("#confirmpassword");
             passwordError = $("#passworderror");
-            submitButton = $("#submitbutton");
+            loginButton = $("#loginbutton");
+            registerButton = $("#registerbutton");
             passwordLengthError = $("#passwordlength");
             usernameInput = $("#username");
             usernameError = $("#usernameerror");
@@ -124,8 +133,8 @@
                 signInTab.addClass("active");
                 registerTab.removeClass("active");
                 confirmPasswordFormGroup.hide();
-                submitButton.prop("name", "login");
-                submitButton.text("Sign In");
+                loginButton.show();
+                registerButton.hide();
                 register = false;
                 validate();
                 form.prop("action", "/login");
@@ -136,8 +145,8 @@
                 registerTab.addClass("active");
                 signInTab.removeClass("active");
                 confirmPasswordFormGroup.show();
-                submitButton.prop("name", "register");
-                submitButton.text("Register");
+                loginButton.hide();
+                registerButton.show();
                 register = true;
                 form.prop("action", "/register");
             });
@@ -180,9 +189,9 @@
             }
 
             if (!error || !register) {
-                submitButton.prop("disabled", false);
+                registerButton.prop("disabled", false);
             } else {
-                submitButton.prop("disabled", true);
+                registerButton.prop("disabled", true);
             }
         }
     </script>
