@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Profile</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css"
+          integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js"
+            integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh"
+            crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js"
+            integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ"
+            crossorigin="anonymous"></script>
+
+    <style>
+        .status {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+
+        <h3>User profile for {{ username }}</h3>
+
+        <form>
+            <div class="form-group">
+                <div class="alert alert-danger status" id="changedisplaynameerroralert">Failed to change display name.</div>
+                <div class="alert alert-success status" id="changedisplaynamesuccessalert">Changed display name successfully.</div>
+                <label for="displayname">Display Name</label>
+                <input id="displayname" class="form-control" type="text"
+                       {% if display_name != None %}value="{{ display_name }}"{% endif %}>
+                <small class="form-text text-muted">This is how your name will show up in games.</small>
+            </div>
+            <div class="form-group">
+                <button id="changedisplaynamebutton" class="btn btn-primary">Change Display Name</button>
+            </div>
+
+            <hr>
+
+            <div class="form-group">
+                <div class="alert alert-success status" id="changedpasswordsuccessalert">Successfully changed password.</div>
+                <div class="alert alert-danger status" id="changepasswordincorrectalert">Incorrect password.</div>
+                <div class="alert alert-danger status" id="changepasswordmiscalert">Miscellaneous Error.</div>
+                <label for="currentpassword">Current Password</label>
+                <input id="currentpassword" class="form-control" type="password">
+            </div>
+            <div class="form-group">
+                <label for="newpassword">New Password</label>
+                <input id="newpassword" class="form-control" type="password">
+                <small class="invalid-feedback" id="newpassworderror">
+                    Password must be at least {{ password_min_length }} characters.
+                </small>
+            </div>
+            <div class="form-group">
+                <label for="confirmnewpassword">Confirm New Password</label>
+                <input id="confirmnewpassword" class="form-control" type="password">
+                <small class="invalid-feedback" id="confirmnewpassworderror">
+                    Does not match your password.
+                </small>
+            </div>
+            <div class="form-group">
+                <button id="changepasswordbutton" class="btn btn-primary">Change Password</button>
+            </div>
+        </form>
+
+    </div>
+
+    <script type="text/javascript">
+        "use strict";
+
+        var displayNameInput;
+
+        var currentPasswordInput;
+        var passwordInput;
+        var confirmPasswordInput;
+        var confirmPasswordError;
+        var passwordLengthError;
+
+        var changePasswordButton;
+        var changeDisplayNameButton;
+
+        var passwordLength = {{ password_min_length }};
+        var changeDisplayNameUrl = "{{ change_display_name_url }}";
+        var changePasswordUrl = "{{ change_password_url }}";
+
+        $(document).ready(function(){
+            displayNameInput = $("#displayname");
+            currentPasswordInput = $("#currentpassword");
+            passwordInput = $("#newpassword");
+            confirmPasswordInput = $("#confirmnewpassword");
+            confirmPasswordError = $("#confirmnewpassworderror");
+            passwordLengthError = $("#newpassworderror");
+
+            changePasswordButton = $("#changepasswordbutton");
+            changeDisplayNameButton = $("#changedisplaynamebutton");
+
+            confirmPasswordInput.on('change keyup paste mouseup', validate);
+            passwordInput.on('change keyup paste mouseup', validate);
+
+            changeDisplayNameButton.click(changeDisplayName);
+            changePasswordButton.click(changePassword);
+
+            validate();
+
+
+            $("form").submit(function(e){
+                console.log("Tried to submit!");
+                e.preventDefault();
+            });
+
+            // Prevent enter from submitting the form.
+            $(window).keydown(function(event){
+                if(event.keyCode === 13){
+                    event.preventDefault();
+                }
+            });
+        });
+
+        function validate(){
+            var error = false;
+
+            if (passwordInput.val() === confirmPasswordInput.val() || passwordInput.val().length === 0) {
+                confirmPasswordError.hide();
+                confirmPasswordInput.removeClass("is-invalid");
+            } else {
+                confirmPasswordError.show();
+                confirmPasswordInput.addClass("is-invalid");
+                error = true;
+            }
+
+            if (passwordInput.val().length >= passwordLength || passwordInput.val().length === 0) {
+                passwordLengthError.hide();
+                passwordInput.removeClass("is-invalid");
+            } else {
+                passwordLengthError.show();
+                passwordInput.addClass("is-invalid");
+                error = true;
+            }
+
+            if (!error) {
+                changePasswordButton.prop("disabled", false);
+            } else {
+                changePasswordButton.prop("disabled", true);
+            }
+        }
+
+        function changeDisplayName(event){
+            var newName = displayNameInput.val();
+            $.ajax({
+                'url': changeDisplayNameUrl,
+                'method': "POST",
+                'data': {
+                    newname: newName
+                },
+                'error': function(request, status, error){
+                    console.error("Failed to change display name.");
+                    console.error(status);
+                    console.error(error);
+                    $(".status").hide();
+                    $("#changedisplaynameerroralert").show();
+                },
+                'success': function(){
+                    $(".status").hide();
+                    $("#changedisplaynamesuccessalert").show();
+                }
+            });
+        }
+
+        function changePassword(){
+            var currentPassword = currentPasswordInput.val();
+            var newPassword = passwordInput.val();
+            $.ajax({
+                'url': changePasswordUrl,
+                'method': "POST",
+                'data': {
+                    oldpassword: currentPassword,
+                    newpassword: newPassword
+                },
+                'error': function(response, status, error){
+                    console.error(response);
+                    console.error(status);
+                    console.error(error);
+                    $(".status").hide();
+                    if(response.status === 401){
+                        $("#changepasswordincorrectalert").show();
+                    }else{
+                        $("#changepasswordmiscalert").show();
+                    }
+                },
+                'success': function(){
+                    $(".status").hide();
+                    $("#changedpasswordsuccessalert").show();
+                }
+
+            })
+        }
+    </script>
+</body>
+</html>

@@ -11,8 +11,8 @@ app.register_blueprint(login_page)
 
 
 @app.route('/')
-def hello_world():
-    return 'Hello World!'
+def index():
+    return render_template("debug_template.html", message="This is the index page!")
 
 
 @app.route('/debug')

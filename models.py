@@ -30,6 +30,9 @@ class User(Base, UserMixin):
         self.username_lower = username.lower()
         self.passwordhash = passwordhash
         self.displayname = displayname
+        self.regentoken()
+
+    def regentoken(self):
         self.authtoken = "".join(random.SystemRandom().choice(string.printable) for _ in range(AUTH_TOKEN_LENGTH))
 
     def __repr__(self):

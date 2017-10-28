@@ -36,6 +36,10 @@
             <div class="alert alert-danger">Invalid username or password.</div>
         {% endif %}
 
+        {% if has_next %}
+            <div class="alert alert-info">You must log in to access this page.</div>
+        {% endif %}
+
         <ul class="nav nav-tabs">
             <li class="nav-item">
                 <a class="nav-link active" href="#" id="signintab">Sign In</a>
@@ -79,6 +83,8 @@
                 <!-- This feedback is unhidden by form validation function -->
                 <small class="hidden invalid-feedback" id="passworderror">Does not match your password.</small>
             </div>
+
+            <input type="hidden" name="next" value="{{ next }}">
 
             <!-- The Sign In button is hidden when in the register tab, and shown when in the sign in tab -->
             <button type="submit" class="btn btn-primary" id="loginbutton">Sign in</button>
@@ -162,28 +168,28 @@
             var error = false;
 
             if (usernameRegex.test(usernameInput.val()) || usernameInput.val().length === 0 || !register) {
-                usernameError.addClass("hidden");
+                usernameError.hide();
                 usernameInput.removeClass("is-invalid");
             } else {
-                usernameError.removeClass("hidden");
+                usernameError.show();
                 usernameInput.addClass("is-invalid");
                 error = true;
             }
 
             if (passwordInput.val() === confirmPasswordInput.val() || passwordInput.val().length === 0 || !register) {
-                passwordError.addClass("hidden");
+                passwordError.hide();
                 confirmPasswordInput.removeClass("is-invalid");
             } else {
-                passwordError.removeClass("hidden");
+                passwordError.show();
                 confirmPasswordInput.addClass("is-invalid");
                 error = true;
             }
 
             if (passwordInput.val().length >= passwordLength || passwordInput.val().length === 0 || !register) {
-                passwordLengthError.addClass("hidden");
+                passwordLengthError.hide();
                 passwordInput.removeClass("is-invalid");
             } else {
-                passwordLengthError.removeClass("hidden");
+                passwordLengthError.show();
                 passwordInput.addClass("is-invalid");
                 error = true;
             }
