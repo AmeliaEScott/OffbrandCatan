@@ -1,7 +1,7 @@
 from flask import current_app
 from flask import render_template, request, redirect, url_for, make_response, Blueprint
 from urllib.parse import urlparse, urljoin
-from flask_login import LoginManager, login_required, login_user, logout_user, current_user
+from flask_login import LoginManager, login_required, login_user, logout_user, confirm_login, current_user
 from database import db_session
 from models import User
 import bcrypt
@@ -125,9 +125,7 @@ def processlogin(user, nexturl=None):
 @login_required
 def profile():
     return render_template("profile.html", password_min_length=PASSWORD_MIN_LENGTH,
-                           username=current_user.username, display_name=current_user.displayname,
-                           change_display_name_url=url_for("login_page.changename"),
-                           change_password_url=url_for("login_page.changepassword"))
+                           username=current_user.username, display_name=current_user.displayname)
 
 
 @login_page.route('/changename', methods=['POST'])
@@ -135,7 +133,8 @@ def profile():
 def changename():
     newname = request.form['newname']
     if len(newname) > 127:
-        return make_response("Username should be less than 127 characters.", 400)
+        current_app.logger.debug("Refused to change to a really long display name.")
+        return make_response("Display name should be less than 127 characters.", 400)
     current_user.displayname = newname
     db_session.add(current_user)
     db_session.commit()
@@ -148,12 +147,17 @@ def changepassword():
     oldpassword = request.form['oldpassword'].encode()
     newpassword = request.form['newpassword'].encode()
 
+    if len(newpassword) < PASSWORD_MIN_LENGTH or len(newpassword) > 256:
+        return make_response("password length", 403)
+
     if bcrypt.checkpw(oldpassword, current_user.passwordhash):
         newhash = bcrypt.hashpw(newpassword, bcrypt.gensalt(PASSWORD_SALT_ROUNDS))
         current_user.passwordhash = newhash
+        # Gotta change the user token to invalidate any cookies lurking around on other computers.
         current_user.regentoken()
         db_session.add(current_user)
         db_session.commit()
+        login_user(current_user, remember=True)
         return make_response("success", 200)
     else:
         return make_response("incorrect password", 401)

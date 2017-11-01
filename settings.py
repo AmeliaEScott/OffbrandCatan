@@ -1,17 +1,22 @@
 import os
 import bcrypt
 import base64
+import random
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 DATABASE = os.path.join(APP_ROOT, 'database.db')
+
+DEBUG = True
+
+VERSION = "0.0.2"
 
 PASSWORD_SALT_ROUNDS = 12
 testhash = bcrypt.hashpw(b"test password", bcrypt.gensalt(PASSWORD_SALT_ROUNDS))
 
 PASSWORD_HASH_LENGTH = len(testhash)
 
-PASSWORD_MIN_LENGTH = 11
+PASSWORD_MIN_LENGTH = 12
 
 GAME_ID_LENGTH_BYTES = 12
 

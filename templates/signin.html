@@ -143,7 +143,7 @@
                 registerButton.hide();
                 register = false;
                 validate();
-                form.prop("action", "/login");
+                form.prop("action", "{{ url_for('login_page.dologin') }}");
             });
 
             registerTab.click(function(){
@@ -154,7 +154,7 @@
                 loginButton.hide();
                 registerButton.show();
                 register = true;
-                form.prop("action", "/register");
+                form.prop("action", "{{ url_for('login_page.doregister') }}");
             });
 
             if(register){

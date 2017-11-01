@@ -29,6 +29,8 @@
         <h3>User profile for {{ username }}</h3>
 
         <form>
+
+            <!-- Change display name -->
             <div class="form-group">
                 <div class="alert alert-danger status" id="changedisplaynameerroralert">Failed to change display name.</div>
                 <div class="alert alert-success status" id="changedisplaynamesuccessalert">Changed display name successfully.</div>
@@ -43,9 +45,11 @@
 
             <hr>
 
+            <!-- Change password -->
             <div class="form-group">
                 <div class="alert alert-success status" id="changedpasswordsuccessalert">Successfully changed password.</div>
                 <div class="alert alert-danger status" id="changepasswordincorrectalert">Incorrect password.</div>
+                <div class="alert alert-danger status" id="changepasswordlengthalert">Password must be at least {{ password_min_length }} characters.</div>
                 <div class="alert alert-danger status" id="changepasswordmiscalert">Miscellaneous Error.</div>
                 <label for="currentpassword">Current Password</label>
                 <input id="currentpassword" class="form-control" type="password">
@@ -86,8 +90,8 @@
         var changeDisplayNameButton;
 
         var passwordLength = {{ password_min_length }};
-        var changeDisplayNameUrl = "{{ change_display_name_url }}";
-        var changePasswordUrl = "{{ change_password_url }}";
+        var changeDisplayNameUrl = "{{ url_for('login_page.changename') }}";
+        var changePasswordUrl = "{{ url_for('login_page.changepassword') }}";
 
         $(document).ready(function(){
             displayNameInput = $("#displayname");
@@ -108,13 +112,14 @@
 
             validate();
 
-
+            // Try to prevent the form from being submitted, because if it does get submitted, it redirects... back
+            // to the current page??? Because that is super useful and makes a lot of sense.
             $("form").submit(function(e){
                 console.log("Tried to submit!");
                 e.preventDefault();
             });
 
-            // Prevent enter from submitting the form.
+            // But like really for real this time prevent the user from submitting the form. (By hitting enter)
             $(window).keydown(function(event){
                 if(event.keyCode === 13){
                     event.preventDefault();
@@ -150,7 +155,7 @@
             }
         }
 
-        function changeDisplayName(event){
+        function changeDisplayName(){
             var newName = displayNameInput.val();
             $.ajax({
                 'url': changeDisplayNameUrl,
@@ -189,6 +194,8 @@
                     $(".status").hide();
                     if(response.status === 401){
                         $("#changepasswordincorrectalert").show();
+                    }else if(response.status === 403){
+                        $("#changepasswordlengthalert").show();
                     }else{
                         $("#changepasswordmiscalert").show();
                     }

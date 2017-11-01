@@ -8,6 +8,8 @@ from database import Base
 from settings import PASSWORD_HASH_LENGTH, GAME_ID_LENGTH_BYTES, AUTH_TOKEN_LENGTH
 
 
+# TODO: Change this association table to a "player" class which contains resources and whatnot
+
 association_table = Table('game_user_association', Base.metadata,
                           Column('userid', Integer, ForeignKey('users.userid')),
                           Column('gameid', LargeBinary(GAME_ID_LENGTH_BYTES), ForeignKey('games.gameid')),
