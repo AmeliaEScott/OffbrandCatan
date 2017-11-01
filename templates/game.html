@@ -99,7 +99,7 @@
                     <div id="sidebar-accordion" role="tablist">
                         <div class="card">
                             <div class="card-header" role="tab" id="resources-card-header"
-                                data-toggle="collapse" data-target="#resources-card">
+                                 data-toggle="collapse" data-target="#resources-card">
                                 <h5> Resources </h5>
                             </div>
                             <div id="resources-card" class="collapse show" role="tabpanel"
@@ -108,9 +108,9 @@
                                     <div class="row">
                                         <div class="col-4">
                                             <figure class="figure">
-                                                <figcaption class="figure-caption text-center"><strong>Wheat</strong>
-                                                </figcaption>
-                                                <img src="https://via.placeholder.com/324x504?text=wheat"
+                                                <!--figcaption class="figure-caption text-center"><h6>Wheat</h6>
+                                                </figcaption-->
+                                                <img src="{{ url_for('static', filename='images/resource_wheat.png') }}"
                                                      class="figure-img img-fluid rounded" alt="Wheat Resource">
                                                 <figcaption class="figure-caption text-center resource-count-wheat">0
                                                 </figcaption>
@@ -118,9 +118,9 @@
                                         </div>
                                         <div class="col-4">
                                             <figure class="figure">
-                                                <figcaption class="figure-caption text-center"><strong>Sheep</strong>
-                                                </figcaption>
-                                                <img src="https://via.placeholder.com/324x504?text=sheep"
+                                                <!--figcaption class="figure-caption text-center"><h6>Sheep</h6>
+                                                </figcaption-->
+                                                <img src="{{ url_for('static', filename='images/resource_sheep.png') }}"
                                                      class="figure-img img-fluid rounded" alt="Sheep Resource">
                                                 <figcaption class="figure-caption text-center resource-count-sheep">0
                                                 </figcaption>
@@ -128,9 +128,9 @@
                                         </div>
                                         <div class="col-4">
                                             <figure class="figure">
-                                                <figcaption class="figure-caption text-center"><strong>Rocks</strong>
-                                                </figcaption>
-                                                <img src="https://via.placeholder.com/324x504?text=rocks"
+                                                <!--figcaption class="figure-caption text-center"><h6>Rocks</h6>
+                                                </figcaption-->
+                                                <img src="{{ url_for('static', filename='images/resource_rocks.png') }}"
                                                      class="figure-img img-fluid rounded" alt="Rocks Resource">
                                                 <figcaption class="figure-caption text-center resource-count-rocks">0
                                                 </figcaption>
@@ -140,9 +140,9 @@
                                     <div class="row">
                                         <div class="col-4">
                                             <figure class="figure">
-                                                <figcaption class="figure-caption text-center"><strong>Wood</strong>
-                                                </figcaption>
-                                                <img src="https://via.placeholder.com/324x504?text=wood"
+                                                <!--figcaption class="figure-caption text-center"><h6>Wood</h6>
+                                                </figcaption-->
+                                                <img src="{{ url_for('static', filename='images/resource_wood.png') }}"
                                                      class="figure-img img-fluid rounded" alt="Wood Resource">
                                                 <figcaption class="figure-caption text-center resource-count-wood">0
                                                 </figcaption>
@@ -150,9 +150,9 @@
                                         </div>
                                         <div class="col-4">
                                             <figure class="figure">
-                                                <figcaption class="figure-caption text-center"><strong>Clay</strong>
-                                                </figcaption>
-                                                <img src="https://via.placeholder.com/324x504?text=clay"
+                                                <!--figcaption class="figure-caption text-center"><h6>Clay</h6>
+                                                </figcaption-->
+                                                <img src="{{ url_for('static', filename='images/resource_clay.png') }}"
                                                      class="figure-img img-fluid rounded" alt="Clay Resource">
                                                 <figcaption class="figure-caption text-center resource-count-clay">0
                                                 </figcaption>
@@ -175,11 +175,11 @@
                                             <figure class="figure">
                                                 <div class="img-overlay">
                                                     <img src="https://via.placeholder.com/300x300?text=Road"
-                                                        class="figure-img img-fluid " alt="Road">
+                                                         class="figure-img img-fluid " alt="Road">
                                                     <img class="fa fa-ban disabled-overlay" id="disabled-overlay-road"
-                                                         src="{{ url_for('static', filename='no_sign.svg') }}">
+                                                         src="{{ url_for('static', filename='images/no_sign.svg') }}">
                                                 </div>
-                                                <figcaption class="figure-caption text-center"> Settlement </figcaption>
+                                                <figcaption class="figure-caption text-center"> Settlement</figcaption>
                                             </figure>
                                         </div>
                                     </div>
