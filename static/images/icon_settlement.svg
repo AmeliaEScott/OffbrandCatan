@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   height="150"
+   width="150">
+  <path
+     d="M 59.144883,76.199825 94.206917,33.850476 59.001186,15.963794 24.513938,58.313143 Z"
+     style="fill:#c00000;stroke:none;"
+     id="path3802" />
+  <path
+     id="path14"
+     d="m 59.144883,76.199825 35.062034,-42.349349 32.331793,33.011449 0.49802,52.555665 -67.893562,7.36475 z"
+     style="fill:#ff0000;stroke:none;" />
+  <path
+     id="path16"
+     d="m 59.144883,76.199825 -0.0018,50.582515 -35.204064,-16.11041 0.574835,-52.358787 z"
+     style="fill:#a00000;stroke:none;" />
+</svg>

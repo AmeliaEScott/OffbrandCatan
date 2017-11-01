@@ -25,6 +25,21 @@ This class adds the "disabled" overlay to things you don't have the resources to
     */
 }
 
+.card-image {
+    /*
+    The two values are horizontal radius / vertical radius.
+    Vertical should equal 0.6731 * horizontal, so that the rounded corner is a circle and not an ellipse.
+     0.6731 is the ratio of height / width of all of the cards.
+     */
+    -webkit-border-radius: 15%/10.1%;
+    -moz-border-radius: 15%/10.1%;
+    border-radius: 15%/10.1%;
+}
+
+.img-blue {
+    filter: hue-rotate(100deg);
+}
+
 
 html, body {
     overflow-x: hidden; /* When elements are hidden offscreen horizontally, this prevents scrolling to see them */
