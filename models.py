@@ -81,9 +81,10 @@ class Player(Base):
     user = relationship("User", back_populates="players")
     order = Column('order', Integer, unique=True, nullable=False)
 
-    def __init__(self, user):
+    def __init__(self, user, game):
         self.order = random.randint(0, 2000000000)
         self.user = user
+        self.game = game
 
     def __repr__(self):
         return "Game id: {}, Player id: {}, User id: {}, Order: {}".format(self.gameid, self.playerid,
