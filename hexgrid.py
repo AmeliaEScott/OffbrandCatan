@@ -144,13 +144,19 @@ class HexGrid:
         Having this limited form makes several operations, such as finding neighbors, much simpler, because I only have
         to test these 5 directions, instead of all 12 (6 corners and 6 edges).
 
-        :param coords: Either a string of format "x,y,direction", or any iterable in the order (x, y, direction). The
-                        direction is optional in either case.
+        :param coords: Either a string of format "x,y,direction", any iterable in the order (x, y, direction), or a
+                       dict containing {'x': <int or str>, 'y': <int or str>, 'direction': <Direction or str>}. The
+                       direction is optional in either case.
         :return: Tuple of (x, y, direction), such that these new coordinates represent the same location on the grid,
                  but in the aforementioned canonical form.
         """
         if isinstance(coords, str):
             coords = coords.split(",")
+        elif isinstance(coords, dict):
+            lst = [coords['x', coords['y']]]
+            if 'direction' in lst:
+                lst.append(coords['direction'])
+            coords = lst
         coords = iter(coords)
         x = int(next(coords))
         y = int(next(coords))
