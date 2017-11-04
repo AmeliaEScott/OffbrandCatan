@@ -1,11 +1,28 @@
 from hexgrid import HexGrid
+from sqlalchemy.ext.mutable import Mutable
+from mutabletypes import MutableDict
 import json
 
 
-class GameBoard:
+class GameBoard(Mutable, HexGrid):
     """
     Represents the hexagonal game board.
+    This class is a subclass of Mutable so that changes to the board (Adding/removing tiles, building roads and
+    settlements, etc) are properly detected by SqlAlchemy and committed to the database.
     """
+
+    @classmethod
+    def coerce(cls, key, value):
+        """
+        This method is needed by SqlAlchemy to work.
+        I do not understand it. It is deep magic.
+        """
+        if isinstance(value, GameBoard):
+            return value
+        elif isinstance(value, dict):
+            return GameBoard(data=value)
+        else:
+            return Mutable.coerce(key, value)
 
     def __init__(self, data=None):
         """
@@ -17,13 +34,13 @@ class GameBoard:
         """
         # TODO: Add the rest of the necessary data (like thief location)
 
-        self.hexgrid = HexGrid()
+        super(GameBoard, self).__init__()
 
         if data is not None:
             if isinstance(data, str):
                 data = json.loads(data)
             for location, tiledata in data['tiles'].items():
-                self.hexgrid[location] = tiledata
+                self[location] = tiledata
 
     def addtile(self, coords, number=None, resourcetype=None, thief=False, facedown=False):
         """
@@ -43,32 +60,32 @@ class GameBoard:
         }
         if not HexGrid.istile(coords):
             raise ValueError("Coordinates {} do not represent a tile.".format(coords))
-        self.hexgrid[coords] = tile
+        self[coords] = tile
 
-        for coords in self.hexgrid.getcornerneighbors(coords, check=False):
-            if coords not in self.hexgrid:
+        for coords in self.getcornerneighbors(coords, check=False):
+            if coords not in self:
                 self.addcorner(coords)
 
-        for coords in self.hexgrid.getedgeneighbors(coords, check=False):
-            if coords not in self.hexgrid:
+        for coords in self.getedgeneighbors(coords, check=False):
+            if coords not in self:
                 self.addedge(coords)
 
-    def addcorner(self, coords, player=None, type=None):
+    def addcorner(self, coords, player=None, tiletype=None):
         """
         Adds a corner with all of the necessary parameters.
         :param coords: Any valid corner coordinates
         :param player: ID of player who owns this corner (or None).
-        :param type: Type of this corner ('city', 'settlement', None)
+        :param tiletype: Type of this corner ('city', 'settlement', None)
         :return: A dict representing the corner
         """
         corner = {
             'player': player,
-            'type': type
+            'type': tiletype
         }
 
         if not HexGrid.iscorner(coords):
             raise ValueError("Coordinates {} do not represent a corner.")
-        self.hexgrid[coords] = corner
+        self[coords] = corner
 
     def addedge(self, coords, player=None, port=None):
         """
@@ -85,8 +102,8 @@ class GameBoard:
         }
 
         if not HexGrid.isedge(coords):
-            raise ValueError("Coordinates {} do not represrnt an edge.".format(coords))
-        self.hexgrid[coords] = edge
+            raise ValueError("Coordinates {} do not represent an edge.".format(coords))
+        self[coords] = edge
 
     def asdict(self, player=None):
         """
@@ -95,7 +112,7 @@ class GameBoard:
         :return: A dict that can be used to reconstruct this game board using the initializer.
         """
         tiles = {}
-        for location, tile in self.hexgrid:
+        for location, tile in self:
             if HexGrid.istile(location) and player is not None:
                 # If tile is facedown, then hide all information. Otherwise, no information needs to be hidden.
                 # (Also, if player is None, then provide all information anyway, even if its facedown)
@@ -107,6 +124,17 @@ class GameBoard:
         return {
             'tiles': tiles
         }
+
+    def __setitem__(self, key, value):
+        self.changed()
+        # The values in the game board should always be dicts, so I can confidently convert them to MutableDicts.
+        # This is necessary so that changes in these dicts are properly reflected in this class, and therefore
+        # properly detected by SqlAlchemy and committed to the database.
+        HexGrid.__setitem__(self, key, MutableDict(value, parent=self))
+
+    def __delitem__(self, key):
+        self.changed()
+        HexGrid.__delitem__(self, key)
 
 
 def test():

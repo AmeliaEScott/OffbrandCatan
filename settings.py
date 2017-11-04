@@ -27,10 +27,8 @@ AUTH_TOKEN_LENGTH = 64
 try:
     with open('.secretkey', 'rb') as secretkeyfile:
         SECRET_KEY = secretkeyfile.read(24)
-    print("Read secret key from file")
 
 except FileNotFoundError:
     SECRET_KEY = os.urandom(24)
     with open('.secretkey', 'wb+') as secretkeyfile:
         secretkeyfile.write(SECRET_KEY)
-    print("Generated new secret key")

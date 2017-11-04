@@ -4,7 +4,7 @@ from enum import Enum
 class HexGrid:
     """
     Represents an abstract hexagonal grid.
-    The grid can have objects on the tiles, edges, or corners.
+    The grid can have any Python objects on the tiles, edges, or corners.
 
     Any function in this class that takes a 'coords' parameter can accept either a string of the format "x,y,direction",
     or an iterable in the order (x, y, direction). In both cases, the direction is optional. With no direction supplied,
@@ -15,6 +15,9 @@ class HexGrid:
     grid[1, 2, Direction.CORNER_N] returns the object at the north corner of the tile at (1, 2).
     grid["1,2,EDGE_E"] returns the object on the east edge of the tile at (1, 2).
     If a given location does not exist in the grid, then None is returned.
+
+    This class is intentionally written to have no functionality specific to Catan, so it should be
+    reusable elsewhere fairly easily.
     """
     # TODO: Determine if I should throw a KeyError instead of returning None
 
@@ -43,7 +46,7 @@ class HexGrid:
         return location in self.tiles
 
     def __iter__(self):
-        return self.tiles.items()
+        return iter(self.tiles.items())
 
     def gettileneighbors(self, coords, check=True):
         """

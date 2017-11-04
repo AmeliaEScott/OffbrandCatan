@@ -1,17 +1,15 @@
 from sqlalchemy import Column, Integer, String, LargeBinary, Table, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from sqlalchemy import types
+from sqlalchemy.ext import mutable
 from flask_login import UserMixin
 import datetime
 import random
 import string
 import json
-from gametypes import GameBoard
+from gameboard import GameBoard
 from database import Base
 from settings import PASSWORD_HASH_LENGTH, GAME_ID_LENGTH_BYTES, AUTH_TOKEN_LENGTH
-
-
-# TODO: Change this association table to a "player" class which contains resources and whatnot
 
 
 class User(Base, UserMixin):
@@ -43,15 +41,21 @@ class User(Base, UserMixin):
         return self.authtoken
 
 
-class GameBoardType(types.TypeDecorator):
+class DictableType(types.TypeDecorator):
+    """
+    Can serialize any type that fits the following criteria:
+    1. Implements a function asdict() which returns a JSON-serializable dict
+    2. Implements an initializer which takes this dict as the only parameter
+    3. If Mutable, then the coerce method should accept a plain dictionary
+    """
 
-    impl = types.String
+    impl = types.VARCHAR
 
     def process_bind_param(self, value, dialect):
         return json.dumps(value.asdict())
 
     def process_result_value(self, value, dialect):
-        return GameBoard(json.loads(value))
+        return json.loads(value)
 
 
 class Game(Base):
@@ -61,12 +65,14 @@ class Game(Base):
     # Stored the index in the 'players' list of the current turn
     currentturn = Column("currentturn", Integer)
     timecreated = Column("timecreated", DateTime, default=datetime.datetime.now)
+    gameboard = Column('gameboard', GameBoard.as_mutable(DictableType), nullable=False)
 
-    gameboard = Column('gameboard', GameBoardType, nullable=False)
-
-    def __init__(self, gameid):
+    def __init__(self, gameid, gameboard=None):
         self.gameid = gameid
-        self.gameboard = GameBoard()
+        if gameboard is None:
+            self.gameboard = GameBoard()
+        else:
+            self.gameboard = gameboard
 
     def __repr__(self):
         return "Game(gameid={})".format(self.gameid)
@@ -89,4 +95,3 @@ class Player(Base):
     def __repr__(self):
         return "Game id: {}, Player id: {}, User id: {}, Order: {}".format(self.gameid, self.playerid,
                                                                            self.userid, self.order)
-
