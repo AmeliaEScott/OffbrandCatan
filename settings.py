@@ -1,7 +1,7 @@
 import os
 import bcrypt
 import base64
-import random
+from clippath import clippath
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 
@@ -32,3 +32,5 @@ except FileNotFoundError:
     SECRET_KEY = os.urandom(24)
     with open('.secretkey', 'wb+') as secretkeyfile:
         secretkeyfile.write(SECRET_KEY)
+
+HEX_CLIP_PATH = clippath(R=70, W=20)
