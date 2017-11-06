@@ -1,7 +1,7 @@
 from math import cos, sin, asin, atan, radians
 
 
-def clippath(imgw=620, imgh=700, W=0, R=70):
+def clippath(W=0, R=0.05):
     """
     Each hexagon has to be rendered with a slight margin (to make room for roads) and a circular cutout on the
     corner (to make room for settlements). This is done with an SVG clip path. This function generates that clip
@@ -9,12 +9,16 @@ def clippath(imgw=620, imgh=700, W=0, R=70):
     to leave this code here in case I want to adjust the width of these cutouts.
 
     I won't even try to explain this code. It's a bunch of geometry that would require a diagram to be sensible.
-    :param imgw: Width of hexagon image
-    :param imgh: Heigh of hexagon image
-    :param W: Width of margin around hexagon, in pixels
-    :param R: Radius of corner cutouts
+    :param W: Width of margin around hexagon, as a fraction of the height of the image
+    :param R: Radius of corner cutouts, as a fraction of the height of the image
     :return: Clip path text
     """
+
+    if R <= 0:
+        R = 0.00000001
+
+    imgh = 1
+    imgw = sin(radians(60)) * imgh
 
     theta = atan(W / R)
 

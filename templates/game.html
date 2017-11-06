@@ -19,6 +19,22 @@
             integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ"
             crossorigin="anonymous"></script>
 
+    <script type="text/javascript">
+        // This global variable is used to draw the game board.
+        // It is in this HTML file because it needs to be generated dynamically using templates.
+        // This is because, if this entire app is hosted at something like /game, all of these static URLs will change.
+
+        var resourceUrls = {
+            'wheat': "{{ url_for('static', filename='images/hex_wheat.png') }}",
+            'clay': "{{ url_for('static', filename='images/hex_clay.png') }}",
+            'rocks': "{{ url_for('static', filename='images/hex_rocks.png') }}",
+            'sheep': "{{ url_for('static', filename='images/hex_sheep.png') }}",
+            'wood': "{{ url_for('static', filename='images/hex_wood.png') }}",
+            'desert': "{{ url_for('static', filename='images/hex_desert.png') }}"
+        };
+
+    </script>
+    <!-- I do not have much of a handle on how JS modules work. I don't think I need hexgrid.js here... -->
     <!--script type="module" src="{{ url_for('static', filename='js/hexgrid.js') }}"></script-->
     <script type="module" src="{{ url_for('static', filename='js/gameboard.js') }}"></script>
 
@@ -89,23 +105,21 @@
                 <div class="col-12 col-md-9">
                     <div style="position: relative;">
                         <p class="d-md-none sidebar-button">
-                                <button type="button" class="btn btn-sm btn-primary" data-toggle="offcanvas">Toggle the thingy
-                                </button>
-                            </p>
+                            <button type="button" class="btn btn-sm btn-primary" data-toggle="offcanvas">Toggle the thingy
+                            </button>
+                        </p>
                         <div class="svg-container">
-                            <svg xmlns="http://www.w3.org/2000/svg" id="gameboard" viewBox="0 0 1 1" width="1500px" height="1500px">
+                            <svg xmlns="http://www.w3.org/2000/svg" id="gameboard" viewBox="0 0 1 1" class="img-fluid">
                                 <defs>
                                     <clipPath id="hex-clip" clipPathUnits="objectBoundingBox">
                                         <!-- This clip path is generated on the server in clippath.py. -->
                                         <path d="{{ hex_clip_path }}"></path>
                                     </clipPath>
+
+                                    <!-- This image serves as a template for creating new Hexagons to add to the game board. -->
+                                    <image id="hex-template" class="hex-tile"></image>
                                 </defs>
-
-
-                                <image xlink:href="{{ url_for('static', filename='images/hex_sheep.png') }}" x="0" y="0" height="1" clip-path="url(#hex-clip)"></image>
-                                <image xlink:href="{{ url_for('static', filename='images/hex_sheep.png') }}" x="0" y="0" height="1"  opacity="0.5"></image>
-
-                                <!--path d="{{ hex_clip_path }}" transform="scale(0.8857, 1)" fill="#ff0000"></path-->
+                                <!-- This SVG is filled up by gameboard.js -->
                             </svg>
                         </div>
                     </div>

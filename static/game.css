@@ -9,7 +9,7 @@
 
 .svg-container {
     overflow: scroll;
-    height: 95vh;
+    height: 90vh;
     position: relative;
     top: 0;
     left: 0;
@@ -28,6 +28,10 @@
     top: 0;
     left: 0;
     z-index: 0;
+}
+
+.hex-tile {
+    clip-path: url(#hex-clip);
 }
 
 /*

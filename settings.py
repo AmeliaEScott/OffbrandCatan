@@ -33,4 +33,4 @@ except FileNotFoundError:
     with open('.secretkey', 'wb+') as secretkeyfile:
         secretkeyfile.write(SECRET_KEY)
 
-HEX_CLIP_PATH = clippath(R=70, W=20)
+HEX_CLIP_PATH = clippath(R=0, W=0)
