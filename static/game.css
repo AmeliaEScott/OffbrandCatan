@@ -1,6 +1,6 @@
 .img-overlay {
     position: relative;
-    max-width: 1000px;
+    max-height: 250px;
 }
 
 .img-overlay > img {

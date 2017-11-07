@@ -36,8 +36,7 @@ class Shape {
     /**
      * When drawing shapes, they are all scaled to fit within the viewBox of (0, 1). This function accounts for the
      * extent of the board to which this shape belongs, and scales accordingly.
-     * @returns {{x: number, y: number, scale: number}} (x, y) are the SVG coordinates of the top-left of this shape.
-     *          scale is a float between 0 and 1 representing the size of this shape.
+     * @returns {string} A string representing the transform attribute of this shape
      */
     getTransform() {
         var {x: screenx, y: screeny} = GameBoard.toScreenCoords(this.coords.x, this.coords.y);
@@ -54,10 +53,10 @@ class Shape {
 
         // The screen coordinates currently represent the unscaled cartesian coordinates of the center of the shape.
         // The shift by (-0.5, -0.577) is because the coordinates we need are the top-left corner of the shape.
-        screenx = (screenx - extent.minx - 0.5) * scale;
-        screeny = (screeny - extent.miny - 0.577) * scale;
-
-        return {x: screenx, y: screeny, scale: scale};
+        // (Each tile is 1 unit wide and 1 / sin(60) = 1.155 units tall)
+        screenx = screenx - extent.minx - 0.5;
+        screeny = screeny - extent.miny - 0.577;
+        return `scale(${scale}) translate(${screenx} ${screeny})`;
     }
 
     /**
@@ -115,13 +114,11 @@ class Tile extends Shape {
      * Draws the tile on the parent board's svg element.
      */
     draw() {
-        var {x: screenx, y: screeny, scale: scale} = this.getTransform();
-
         this.element.remove();
 
         this.element.children("image.hex-tile").attr("href", resourceUrls[this.data.resourcetype]);
 
-        this.element.attr("transform", `translate(${screenx} ${screeny}) scale(${scale})`);
+        this.element.attr("transform", this.getTransform());
 
         if (this.data.number) {
             this.element.children("text").text(this.data.number);
@@ -134,7 +131,7 @@ class Tile extends Shape {
 
         this.board.svg.children("#board-tiles").prepend(this.element);
 
-        //TODO: Draw thief and number. Also, handle facedown-ness
+        //TODO: Draw thief. Also, handle facedown-ness
     }
 }
 
@@ -143,11 +140,11 @@ class Tile extends Shape {
  * are stored ahead of time. (This doesn't save any processing power, but hopefully it helps with clarity?)
  */
 const edgeTransforms = {
-    [Direction.EDGE_NE]: "rotate(30, 0.5, 0.577) translate(0 -0.5)",
-    [Direction.EDGE_E]: "rotate(90, 0.5, 0.577) translate(0 -0.5)",
+    [Direction.EDGE_NE]: "rotate(30,  0.5, 0.577) translate(0 -0.5)",
+    [Direction.EDGE_E]:  "rotate(90,  0.5, 0.577) translate(0 -0.5)",
     [Direction.EDGE_SE]: "rotate(150, 0.5, 0.577) translate(0 -0.5)",
     [Direction.EDGE_SW]: "rotate(210, 0.5, 0.577) translate(0 -0.5)",
-    [Direction.EDGE_W]: "rotate(270, 0.5, 0.577) translate(0 -0.5)",
+    [Direction.EDGE_W]:  "rotate(270, 0.5, 0.577) translate(0 -0.5)",
     [Direction.EDGE_NW]: "rotate(330, 0.5, 0.577) translate(0 -0.5)"
 };
 
@@ -179,8 +176,6 @@ class Edge extends Shape {
     }
 
     draw() {
-        var {x: screenx, y: screeny, scale: scale} = this.getTransform();
-
         this.element.remove();
 
         var img = this.element.children("image");
@@ -192,7 +187,7 @@ class Edge extends Shape {
         }
 
         img.attr("transform", edgeTransforms[this.coords.direction]);
-        this.element.attr("transform", `translate(${screenx} ${screeny}) scale(${scale})`);
+        this.element.attr("transform", this.getTransform());
 
         this.board.svg.children("#board-edges").append(this.element);
     }

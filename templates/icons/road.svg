@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg"
-     width="50" height="50"
+     width="250" height="250"
      viewBox="0 0 1 1">
 
     <rect x="0.1" y="0.45" width="0.8" height="0.1" fill="#{{ primary }}"/>

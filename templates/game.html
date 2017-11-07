@@ -50,6 +50,8 @@
         {% endfor %}
         };
 
+        var me = {{ me }};
+
     </script>
     <!-- I do not have much of a handle on how JS modules work. I don't think I need hexgrid.js here... -->
     <!--script type="module" src="{{ url_for('static', filename='js/hexgrid.js') }}"></script-->
@@ -232,16 +234,52 @@
                             <div id="building-card" class="collapse" role="tabpanel"
                                  data-parent="#sidebar-accordion">
                                 <div class="card-body">
+                                    <!-- TODO: Figure out how to get these images to be the right size -->
                                     <div class="row">
-                                        <div class="col-4">
+                                        <div class="col-4 col-md-6 col-lg-4">
                                             <figure class="figure">
                                                 <div class="img-overlay">
-                                                    <img src="https://via.placeholder.com/300x300?text=Road"
-                                                         class="figure-img img-fluid " alt="Road">
-                                                    <img class="fa fa-ban disabled-overlay" id="disabled-overlay-road"
+                                                    <img src="{{ url_for('gameplay.get_icon', icon='road', color=playercolors[me]) }}"
+                                                         class="figure-img img-fluid resource-img" alt="Road">
+                                                    <img class="disabled-overlay" id="disabled-overlay-road"
                                                          src="{{ url_for('static', filename='images/no_sign.svg') }}">
                                                 </div>
-                                                <figcaption class="figure-caption text-center"> Settlement</figcaption>
+                                                <figcaption class="figure-caption text-center">Road</figcaption>
+                                            </figure>
+                                        </div>
+                                        <div class="col-4 col-md-6 col-lg-4">
+                                            <figure class="figure">
+                                                <div class="img-overlay">
+                                                    <img src="{{ url_for('gameplay.get_icon', icon='settlement', color=playercolors[me]) }}"
+                                                         class="figure-img img-fluid resource-img" alt="Settlement">
+                                                    <img class="disabled-overlay" id="disabled-overlay-settlement"
+                                                         src="{{ url_for('static', filename='images/no_sign.svg') }}">
+                                                </div>
+                                                <figcaption class="figure-caption text-center">Settlement</figcaption>
+                                            </figure>
+                                        </div>
+                                        <div class="col-4 col-md-6 col-lg-4">
+                                            <div class="resource-div">
+                                                <figure class="figure">
+                                                    <div class="img-overlay">
+                                                        <img src="{{ url_for('gameplay.get_icon', icon='city', color=playercolors[me]) }}"
+                                                             class="figure-img img-fluid resource-img" alt="City">
+                                                        <img class="disabled-overlay" id="disabled-overlay-city"
+                                                             src="{{ url_for('static', filename='images/no_sign.svg') }}">
+                                                    </div>
+                                                    <figcaption class="figure-caption text-center">City</figcaption>
+                                                </figure>
+                                            </div>
+                                        </div>
+                                        <div class="col-4 col-md-6 col-lg-4">
+                                            <figure class="figure">
+                                                <div class="img-overlay">
+                                                    <img src="{{ url_for('static', filename='images/dev_back.png') }}"
+                                                         class="figure-img img-fluid resource-img" alt="Development Card">
+                                                    <img class="disabled-overlay" id="disabled-overlay-dev"
+                                                         src="{{ url_for('static', filename='images/no_sign.svg') }}">
+                                                </div>
+                                                <figcaption class="figure-caption text-center"><small>Development Card</small></figcaption>
                                             </figure>
                                         </div>
                                     </div>
