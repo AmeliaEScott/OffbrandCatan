@@ -33,6 +33,23 @@
             'desert': "{{ url_for('static', filename='images/hex_desert.png') }}"
         };
 
+        //TODO: Figure out a better way to handle player colors
+        var playerColors = {
+            1: "FF0000",
+            2: "222222",
+            3: "30C030"
+        };
+
+        var playerIcons = {
+        {% for player, color in playercolors.items() %}
+            {{ player }}: {
+                'city': '{{ url_for('gameplay.get_icon', icon='city', color=color) }}',
+                'settlement': '{{ url_for('gameplay.get_icon', icon='settlement', color=color) }}',
+                'road': '{{ url_for('gameplay.get_icon', icon='road', color=color) }}',
+            },
+        {% endfor %}
+        };
+
     </script>
     <!-- I do not have much of a handle on how JS modules work. I don't think I need hexgrid.js here... -->
     <!--script type="module" src="{{ url_for('static', filename='js/hexgrid.js') }}"></script-->
@@ -109,6 +126,8 @@
                             </button>
                         </p>
                         <div class="svg-container">
+                            <!-- TODO: Figure out how to make this SVG available on several different pages.
+                                    (Will be needed for game creation as well as gameplay) -->
                             <svg xmlns="http://www.w3.org/2000/svg" id="gameboard" viewBox="0 0 1 1" class="img-fluid">
                                 <defs>
                                     <clipPath id="hex-clip" clipPathUnits="objectBoundingBox">
@@ -116,10 +135,31 @@
                                         <path d="{{ hex_clip_path }}"></path>
                                     </clipPath>
 
-                                    <!-- This image serves as a template for creating new Hexagons to add to the game board. -->
-                                    <image id="hex-template" class="hex-tile"></image>
+                                    <!-- This serves as a template for creating new Hexagons to add to the game board. -->
+                                    <g id="hex-template">
+                                        <image class="hex-tile" x="0" y="0" width="1"></image>
+                                        <circle cx="0.5" cy="0.577" r="0.1" fill="#D0D0D0"
+                                                stroke-width="0.01" stroke="#000000"></circle>
+                                        <!-- The exact center of the hex in the Y direction is 0.577, but the text  didn't
+                                        look quite right there, so I moved it down to y=0.585. -->
+                                        <text text-anchor="middle" font-family="Serif" alignment-baseline="middle"
+                                              font-size="0.1" x="0.5" y="0.585"></text>
+                                    </g>
+
+                                    <g id="edge-template">
+                                        <image x="0.2115" y="0.2885" height="0.577"></image>
+                                    </g>
                                 </defs>
-                                <!-- This SVG is filled up by gameboard.js -->
+                                <rect x="-100" y="-100" width="200" height="200" fill="#D0D0D0"></rect>
+
+                                <!-- In SVG, the layers are decided by the order the elements appear in the file. I.e.,
+                                    the first element is drawn on the bottom, and the last one on top. I need roads and
+                                    settlements to always appear on top of tiles, regardless of the order they were added
+                                    to the SVG. So I have them be drawn inside of these group elements. -->
+                                <g id="board-tiles"> </g>
+                                <g id="board-edges"> </g>
+                                <g id="board-corners"></g>
+
                             </svg>
                         </div>
                     </div>
@@ -137,52 +177,43 @@
                                  data-parent="#sidebar-accordion">
                                 <div class="card-body">
                                     <div class="row">
-                                        <div class="col-4">
+                                        <div class="col-4 col-md-6 col-lg-4">
                                             <figure class="figure">
-                                                <!--figcaption class="figure-caption text-center"><h6>Wheat</h6>
-                                                </figcaption-->
+
                                                 <img src="{{ url_for('static', filename='images/resource_wheat.png') }}"
                                                      class="figure-img img-fluid card-image" alt="Wheat Resource">
                                                 <figcaption class="figure-caption text-center resource-count-wheat">0
                                                 </figcaption>
                                             </figure>
                                         </div>
-                                        <div class="col-4">
+                                        <div class="col-4 col-md-6 col-lg-4">
                                             <figure class="figure">
-                                                <!--figcaption class="figure-caption text-center"><h6>Sheep</h6>
-                                                </figcaption-->
+
                                                 <img src="{{ url_for('static', filename='images/resource_sheep.png') }}"
                                                      class="figure-img img-fluid card-image" alt="Sheep Resource">
                                                 <figcaption class="figure-caption text-center resource-count-sheep">0
                                                 </figcaption>
                                             </figure>
                                         </div>
-                                        <div class="col-4">
+                                        <div class="col-4 col-md-6 col-lg-4">
                                             <figure class="figure">
-                                                <!--figcaption class="figure-caption text-center"><h6>Rocks</h6>
-                                                </figcaption-->
+
                                                 <img src="{{ url_for('static', filename='images/resource_rocks.png') }}"
                                                      class="figure-img img-fluid card-image" alt="Rocks Resource">
                                                 <figcaption class="figure-caption text-center resource-count-rocks">0
                                                 </figcaption>
                                             </figure>
                                         </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-4">
+                                        <div class="col-4 col-md-6 col-lg-4">
                                             <figure class="figure">
-                                                <!--figcaption class="figure-caption text-center"><h6>Wood</h6>
-                                                </figcaption-->
                                                 <img src="{{ url_for('static', filename='images/resource_wood.png') }}"
                                                      class="figure-img img-fluid card-image" alt="Wood Resource">
                                                 <figcaption class="figure-caption text-center resource-count-wood">0
                                                 </figcaption>
                                             </figure>
                                         </div>
-                                        <div class="col-4">
+                                        <div class="col-4 col-md-6 col-lg-4">
                                             <figure class="figure">
-                                                <!--figcaption class="figure-caption text-center"><h6>Clay</h6>
-                                                </figcaption-->
                                                 <img src="{{ url_for('static', filename='images/resource_clay.png') }}"
                                                      class="figure-img img-fluid card-image" alt="Clay Resource">
                                                 <figcaption class="figure-caption text-center resource-count-clay">0

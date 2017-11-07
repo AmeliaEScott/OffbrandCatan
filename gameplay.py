@@ -11,7 +11,8 @@ gameplay_blueprint = Blueprint('gameplay', __name__, template_folder='templates'
 
 @gameplay_blueprint.route("/game/<game_id>", methods=['GET'])
 def load_game(game_id):
-    response = make_response(render_template("game.html", game_id=game_id, version=VERSION, hex_clip_path=HEX_CLIP_PATH))
+    response = make_response(render_template("game.html", game_id=game_id, version=VERSION, hex_clip_path=HEX_CLIP_PATH,
+                                             playercolors={1: "FF0000", 2: "00ff00", 3: "0000ff"}))
     return response
 
 

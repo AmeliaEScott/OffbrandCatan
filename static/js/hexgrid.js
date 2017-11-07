@@ -350,7 +350,7 @@ class HexGrid {
         if (coords.direction === undefined) {
             return `${coords.x},${coords.y}`;
         } else {
-            return `${coords.y},${coords.y},${coords.direction}`;
+            return `${coords.x},${coords.y},${coords.direction}`;
         }
     }
 }
