@@ -20,6 +20,8 @@ class Shape {
         this.board = board;
 
         var formattedCoords = HexGrid.formatCoords(this.coords);
+        this.template = $(template).html().replace(/id="[^"]"/g, "");
+
 
         // This is to see if there is an SVG element leftover in this location, like if this tile was changed
         // from one to another. In that case, it must be deleted, or else the SVG elements would accumulate.
@@ -28,8 +30,7 @@ class Shape {
         if (existingElement.length !== 0) {
             this.element = existingElement;
         } else {
-            this.element = this.board.svg.find(template).clone(true).removeAttr("id")
-                .attr("data-coords", formattedCoords);
+            this.element = $(document.createElementNS("http://www.w3.org/2000/svg", "g"));
         }
     }
 
@@ -40,23 +41,7 @@ class Shape {
      */
     getTransform() {
         var {x: screenx, y: screeny} = GameBoard.toScreenCoords(this.coords.x, this.coords.y);
-        var extent = this.board.extent;
-        var scale;
-
-        // If the board is wider than it is tall, then it should be scaled to fit the width within the viewBox.
-        if (extent.maxx - extent.minx > extent.maxy - extent.miny) {
-            scale = 1 / (extent.maxx - extent.minx);
-        // Otherwise, scale it to fit the height within the viewBox.
-        } else {
-            scale = 1 / (extent.maxy - extent.miny);
-        }
-
-        // The screen coordinates currently represent the unscaled cartesian coordinates of the center of the shape.
-        // The shift by (-0.5, -0.577) is because the coordinates we need are the top-left corner of the shape.
-        // (Each tile is 1 unit wide and 1 / sin(60) = 1.155 units tall)
-        screenx = screenx - extent.minx - 0.5;
-        screeny = screeny - extent.miny - 0.577;
-        return `scale(${scale}) translate(${screenx} ${screeny})`;
+        return `translate(${screenx}, ${screeny})`;
     }
 
     /**
@@ -64,6 +49,26 @@ class Shape {
      */
     undraw() {
         this.element.remove();
+    }
+
+    /**
+     * Takes the template HTML and replaces all of the [[[]]] tags.
+     * For example, if the template was <a href="[[[url]]]"></a>, and data={url: 'example.com'}, then the result is
+     * <a href="example.com"></a>
+     * @param data An object with keys matching the template tags
+     * @returns {Element} An element created with document.createElementNS, to be added to the SVG
+     */
+    fillTemplate(data){
+        var filledTemplate = this.template;
+        for(var key in data){
+            if(data.hasOwnProperty(key)){
+                filledTemplate = filledTemplate.replace(new RegExp("\\[\\[\\[" + key + "\\]\\]\\]", "g"), data[key]);
+            }
+        }
+        var element = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        element.innerHTML = filledTemplate;
+        element.setAttribute("data-coords", HexGrid.formatCoords(this.coords));
+        return element;
     }
 }
 
@@ -116,20 +121,14 @@ class Tile extends Shape {
     draw() {
         this.element.remove();
 
-        this.element.children("image.hex-tile").attr("href", resourceUrls[this.data.resourcetype]);
+        this.element = this.fillTemplate({
+            number: this.data.number,
+            numbervisibility: this.data.number ? 'visibile' : 'hidden',
+            href: resourceUrls[this.data.resourcetype]
+        });
+        this.element.setAttribute("transform", this.getTransform());
 
-        this.element.attr("transform", this.getTransform());
-
-        if (this.data.number) {
-            this.element.children("text").text(this.data.number);
-            this.element.children("circle").show();
-            this.element.children("text").show();
-        } else {
-            this.element.children("circle").hide();
-            this.element.children("text").hide();
-        }
-
-        this.board.svg.children("#board-tiles").prepend(this.element);
+        this.board.svg.find("#board-tiles").prepend(this.element);
 
         //TODO: Draw thief. Also, handle facedown-ness
     }
@@ -140,12 +139,12 @@ class Tile extends Shape {
  * are stored ahead of time. (This doesn't save any processing power, but hopefully it helps with clarity?)
  */
 const edgeTransforms = {
-    [Direction.EDGE_NE]: "rotate(30,  0.5, 0.577) translate(0 -0.5)",
-    [Direction.EDGE_E]:  "rotate(90,  0.5, 0.577) translate(0 -0.5)",
-    [Direction.EDGE_SE]: "rotate(150, 0.5, 0.577) translate(0 -0.5)",
-    [Direction.EDGE_SW]: "rotate(210, 0.5, 0.577) translate(0 -0.5)",
-    [Direction.EDGE_W]:  "rotate(270, 0.5, 0.577) translate(0 -0.5)",
-    [Direction.EDGE_NW]: "rotate(330, 0.5, 0.577) translate(0 -0.5)"
+    [Direction.EDGE_NE]: "rotate(30,  0.5, 0.577) translate(0, -0.5)",
+    [Direction.EDGE_E]:  "rotate(90,  0.5, 0.577) translate(0, -0.5)",
+    [Direction.EDGE_SE]: "rotate(150, 0.5, 0.577) translate(0, -0.5)",
+    [Direction.EDGE_SW]: "rotate(210, 0.5, 0.577) translate(0, -0.5)",
+    [Direction.EDGE_W]:  "rotate(270, 0.5, 0.577) translate(0, -0.5)",
+    [Direction.EDGE_NW]: "rotate(330, 0.5, 0.577) translate(0, -0.5)"
 };
 
 /**
@@ -178,24 +177,79 @@ class Edge extends Shape {
     draw() {
         this.element.remove();
 
-        var img = this.element.children("image");
+        this.element = this.fillTemplate({
+            href: this.data.player ? playerIcons[this.data.player]['road'] : "",
+            visibility: this.data.player ? 'visible' : 'hidden',
+            edgetransform: edgeTransforms[this.coords.direction]
+        });
 
-        if (this.data.player) {
-            img.attr("href", playerIcons[this.data.player]['road']).show();
-        } else {
-            img.hide();
-        }
+        this.element.setAttribute("transform", this.getTransform());
 
-        img.attr("transform", edgeTransforms[this.coords.direction]);
-        this.element.attr("transform", this.getTransform());
-
-        this.board.svg.children("#board-edges").append(this.element);
+        this.board.svg.find("#board-edges").append(this.element);
     }
 }
 
-//TODO: Create classes for edges and corners. Corners should be easy, because they'll just be circles (probably).
-// Edges will be trickier. I'll start by dealing with ports, then I'll work on coastlines later.
-// Idea for ports: Precalculate the transformation matrices for each of the 6 edges ahead of time.
+/**
+ * Similar to the edgeTransforms above, this stores the transform needed for each of the 6 corners.
+ * Unlike the edge transforms, it doesn't actually involve any rotation, since cities and settlements should
+ * always stay upright.
+ */
+const cornerTransforms = {
+    [Direction.CORNER_NE]: "translate(0.5, -0.289)",
+    [Direction.CORNER_N]:  "translate(0, -0.577)",
+    [Direction.CORNER_NW]: "translate(-0.5, -0.289)",
+    [Direction.CORNER_SW]: "translate(-0.5, 0.289)",
+    [Direction.CORNER_S]:  "translate(0, 0.577)",
+    [Direction.CORNER_SE]: "translate(0.5, 0.289)"
+};
+
+
+/**
+ * Represents a corner of a tile. Can display a city or settlement
+ */
+class Corner extends Shape {
+
+    constructor(coords, board, {player: player, type: type} = {player: null, type: null}){
+        super(coords, board, "#corner-template");
+        this.data = {player, type};
+    }
+
+    set player(player){
+        this.data.player = player;
+        this.draw();
+    }
+
+    set type(type){
+        this.data.type = type;
+        this.draw();
+    }
+
+    draw(){
+        this.element.remove();
+
+        var href;
+        if(this.data.type === "settlement" && this.data.player){
+            href = playerIcons[this.data.player]['settlement'];
+        }else if(this.data.type === "city" && this.data.player){
+            href = playerIcons[this.data.player]['city']
+        }else{
+            href = "";
+        }
+
+        var visible = href && this.data.player;
+
+        this.element = this.fillTemplate({
+            href: href,
+            visibility: visible,
+            cornertransform: cornerTransforms[this.coords.direction]
+        });
+
+        this.element.setAttribute("transform", this.getTransform());
+
+        this.board.svg.find("#board-corners").append(this.element);
+
+    }
+}
 
 /**
  * @requires HexGrid, Direction
@@ -204,6 +258,8 @@ class Edge extends Shape {
  */
 
 class GameBoard extends HexGrid {
+
+    // TODO: Override set() to replace plain objects with Shape objects
 
     /**
      * @param data JSON string or JS object, structured just like the one for gameboard.py
@@ -228,6 +284,10 @@ class GameBoard extends HexGrid {
                 }
             }
         }
+
+        $(document).on('mousewheel DOMMouseScroll', function(event){
+            console.log(`(${event.originalEvent.deltaX}, ${event.originalEvent.deltaY})`);
+        });
     }
 
     /**
@@ -259,12 +319,17 @@ class GameBoard extends HexGrid {
             }
         }
 
-
         tile.draw();
     }
 
     addCorner(coords, {player: player, type: type} = {player: null, type: null}) {
-        this.set(coords, {player, type})
+        var corner = new Corner(coords, this, {player, type});
+
+        if(this.contains(coords)){
+            this.remove(coords);
+        }
+        this.set(coords, corner);
+        corner.draw();
     }
 
     addEdge(coords, {player: player, port: port} = {player: null, port: null}) {
@@ -281,7 +346,6 @@ class GameBoard extends HexGrid {
         coords = HexGrid.formatCoords(coords);
         this.tiles[coords].undraw();
         delete this.tiles[coords];
-        this.calcExtent();
     }
 
     asJSON() {
@@ -295,7 +359,6 @@ class GameBoard extends HexGrid {
      * Gives the extent of the grid, in screen units, along with a margin around the edges to account for the
      * size of the tiles.
      * @returns {{minx: number, maxx: number, miny: number, maxy: number}}
-     * TODO: Cache the results of this so that they aren't recalculated every single time.
      */
     calcExtent() {
         var minx = 100000, maxx = -100000, miny = 1000000, maxy = -1000000;
@@ -312,20 +375,11 @@ class GameBoard extends HexGrid {
 
         // The screen coordinates are located at the center of the hexagon. There needs to be some margin around
         // the edges so that the tiles on the edges don't get cut in half.
-        // A regular hexagon that is 1 unit wide is 1.155 units tall, half of which is 0.577.
-        minx -= 0.5 * 3;
-        miny -= 0.577 * 3;
-        maxx += 0.5 * 3;
-        maxy += 0.577 * 3;
-
-        var newextent = {minx, maxx, miny, maxy};
-        var oldextent = this.extent;
-
-        this.extent = newextent;
-        if (!oldextent || !(oldextent.minx === newextent.minx && oldextent.miny === newextent.miny &&
-            oldextent.maxx === newextent.maxx && oldextent.maxy === newextent.maxy)) {
-            this.draw();
-        }
+        // A regular hexagon that is 1 unit wide is 1.155 units tall.
+        minx -= 1;
+        miny -= 1.155;
+        maxx += 2;
+        maxy += 1.155 * 2;
 
         return {minx, maxx, miny, maxy};
     }
@@ -348,60 +402,138 @@ class GameBoard extends HexGrid {
      * Draws the entire game board on the SVG.
      */
     draw() {
-        //TODO: Draw edges and corners
+        var {minx, maxx, miny, maxy} = this.calcExtent();
+
+        var scaleX = 1 / (maxx - minx);
+        var scaleY = 1 / (maxy - miny);
+        var scale = scaleX < scaleY ? scaleX : scaleY;
+        var transform = `scale(${scale}) translate(${-minx}, ${-miny})`;
+        this.svg.find("#board-everything").attr("transform", transform);
+
         for (var coords in this.tiles) {
-            if (this.tiles.hasOwnProperty(coords) && (HexGrid.isTile(coords))) {
+            if (this.tiles.hasOwnProperty(coords)) {
                 this.tiles[coords].draw();
             }
         }
     }
 
     /**
-     * Zooms in on (or out from) the center of the current viewBox. If this zoom would result in a viewBox out
-     * of range of (0 0 1 1), then it is clipped accordingly.
-     * @param zoom A float greater than or equal to 1. 1 is zoomed all the way out, zoom(2) can see half of the board,
-     *              zoom(3) can see 1/3 of the board, etc.
-     * TODO: Change this to add a parameter for the point around which to zoom (instead of just using the center)
+     * Constrains the specified viewbox to fit within [0, 0, 1, 1]
+     * @param minx Minimum x-coordinate of the original viewbox
+     * @param maxx Maximum x-coordinate of the original viewbox
+     * @param miny Minimum y-coordinate of the original viewbox
+     * @param maxy Maximum y-coordinate of the original viewbox
+     * @returns {{minx: number, maxx: number, miny: number, maxy: number}} The coordinates of the new viewbox
      */
-    zoom(zoom) {
-        if (zoom < 1) {
-            zoom = 1
+    static constrainViewbox({minx, maxx, miny, maxy}){
+        if(minx < 0){
+            maxx -= minx;
+            minx = 0;
+        }else if(maxx > 1){
+            minx -= (maxx - 1);
+            maxx = 1;
         }
-        zoom = 1 / zoom;
-        var viewBox = this.svg.attr("viewBox").split(" ");
-        var x = parseFloat(viewBox[0]);
-        var y = parseFloat(viewBox[1]);
-        var width = parseFloat(viewBox[2]);
-        var height = parseFloat(viewBox[3]);
 
-        // Current center point of the viewBox (so that we can maintain this center point while zooming)
-        var cx = x + (width / 2);
-        var cy = y + (width / 2);
-
-        x = cx - (zoom / 2);
-        y = cy - (zoom / 2);
-
-        // The following if's are all error checking...
-        if (x < 0) {
-            x = 0;
-        } else if (x > 1 - zoom) {
-            x = 1 - zoom
+        if(miny < 0){
+            maxy -= miny;
+            miny = 0;
+        }else if(maxy > 1){
+            miny -= (maxy - 1);
+            maxy = 1;
         }
-        if (y < 0) {
-            y = 0;
-        } else if (y > 1 - zoom) {
-            y = 1 - zoom;
-        }
-        width = zoom;
-        height = zoom;
 
-        this.svg.attr("viewBox", `${x} ${y} ${width} ${height}`);
+        function constrain(val, min=0, max=1){
+            if(val < min){
+                return min;
+            }else if(val > max){
+                return max;
+            }else{
+                return val;
+            }
+        }
+
+        minx = constrain(minx);
+        maxx = constrain(maxx);
+        miny = constrain(miny);
+        maxy = constrain(maxy);
+        return {minx, maxx, miny, maxy};
     }
 
-    //TODO: Add a pan method to move the board around, then connect zoom and pan to event listeners.
+    /**
+     * The viewbox is the part of the SVG canvas that can be seen. The total extent of the SVG will always be
+     * between 0 and 1 in both directions (See the GameBoard.draw() method for how this happens), so the viewbox won't
+     * extend past this.
+     * @returns {{minx: Number, maxx: number, miny: Number, maxy: number}}
+     */
+    get viewbox(){
+        var viewBox = this.svg.attr("viewBox").split(" ");
+        var minx = parseFloat(viewBox[0]);
+        var miny = parseFloat(viewBox[1]);
+        var maxx = minx + parseFloat(viewBox[2]);
+        var maxy = miny + parseFloat(viewBox[3]);
+        return {minx, maxx, miny, maxy};
+    }
+
+    /**
+     * When setting the viewbox, it will be constrained so it doesn't go past [0, 0, 1, 1]
+     * @param viewbox {{minx: number, maxx: number, miny: number, maxy: number}}
+     */
+    set viewbox(viewbox){
+        viewbox = GameBoard.constrainViewbox(viewbox);
+        this.svg.attr("viewBox", `${viewbox.minx} ${viewbox.miny} ${viewbox.maxx - viewbox.minx} ${viewbox.maxy - viewbox.miny}`);
+    }
+
+    /**
+     * Zooms in on (or out from) the center of the current viewBox. If this zoom would result in a viewBox out
+     * of range of (0 0 1 1), then it is clipped accordingly.
+     * @param deltazoom Change in zoom level. A value < 1 zooms in, a value > 0 zooms out.
+     * @param cx X-coordinate of the point about which to zoom
+     * @param cy Y-coordinate of the point about which to zoom
+     */
+    zoom(deltazoom, [cx, cy]) {
+
+        var viewbox = this.viewbox;
+
+        // Transforms (cx, cy) into viewbox coordinates
+        cx = (cx * viewbox.maxx) + (1.0 - cx) * viewbox.minx;
+        cy = (cy * viewbox.maxy) + (1.0 - cy) * viewbox.miny;
+
+        viewbox.minx = cx + ((viewbox.minx - cx) * deltazoom);
+        viewbox.miny = cy + ((viewbox.miny - cy) * deltazoom);
+        viewbox.maxx = cx + ((viewbox.maxx - cx) * deltazoom);
+        viewbox.maxy = cy + ((viewbox.maxy - cy) * deltazoom);
+
+        // Stops you from zooming out past the [0, 0, 1, 1] viewbox
+        this.viewbox = viewbox;
+    }
+
+    /**
+     * Moves the viewbox around without zooming it
+     * @param dx Change in x direction, such that 1.0 is the width of the viewbox
+     * @param dy Change in y direction, such that 1.0 is the width of the viewbox
+     */
+    pan(dx, dy){
+        var viewbox = this.viewbox;
+
+        // Transform the dx into viewbox coordinates
+        dx = dx * (viewbox.maxx - viewbox.minx);
+        dy = dy * (viewbox.maxy - viewbox.miny);
+        viewbox.minx += dx;
+        viewbox.maxx += dx;
+        viewbox.miny += dy;
+        viewbox.maxy += dy;
+        this.viewbox = viewbox;
+    }
+
+    scrollHandler(event){
+        console.log(`(${event.pageX}, ${event.pageY})`);
+    }
+
+    //TODO: Add pan and zoom event listeners (Warning: Browser compatibility might be a nightmare).
 }
 
 // The following are all for testing and will be removed.
+// TODO: Remove everything below this line
 
 window.board = new GameBoard(undefined, "#gameboard");
 
@@ -428,6 +560,18 @@ window.populate = function (width, height) {
             board.addTile([x, y], {resourcetype: randResource(), number: Math.ceil(Math.random() * 12)});
         }
     }
+    window.board.draw();
 };
 
+window.populate(5,5);
+window.board.get("0,0,EDGE_E").player = 1;
+window.board.get("0,0,CORNER_NE").player = 2;
+window.board.get("0,0,CORNER_NE").type = "city";
+
 window.HexGrid = HexGrid;
+
+window.addCorner = function(coords, player, type){
+    var place = window.board.get(coords);
+    place.type = type;
+    place.player = player;
+};

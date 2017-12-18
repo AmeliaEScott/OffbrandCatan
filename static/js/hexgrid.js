@@ -270,7 +270,7 @@ class HexGrid {
      */
     static isEdge(coords){
         coords = HexGrid.getCanonicalCoords(coords);
-        return Direction.edges.indexOf(coords.direction) < 0;
+        return Direction.edges.indexOf(coords.direction) > 0;
     }
 
     /**
@@ -280,7 +280,7 @@ class HexGrid {
      */
     static isCorner(coords){
         coords = HexGrid.getCanonicalCoords(coords);
-        return Direction.corners.indexOf(coords.direction) < 0;
+        return Direction.corners.indexOf(coords.direction) > 0;
     }
 
     /**

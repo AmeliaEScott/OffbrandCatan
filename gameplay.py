@@ -16,7 +16,7 @@ def load_game(game_id):
     return response
 
 
-@gameplay_blueprint.route("/icon/<icon>/<color>")
+@gameplay_blueprint.route("/icon/<icon>/<color>.svg")
 def get_icon(icon, color):
     if icon not in ['city', 'settlement', 'road']:
         return make_response("Icon not found", 404)
