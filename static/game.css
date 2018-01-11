@@ -8,7 +8,7 @@
 }
 
 .svg-container {
-    overflow: scroll;
+    overflow: hidden;
     height: 90vh;
     position: relative;
     top: 0;

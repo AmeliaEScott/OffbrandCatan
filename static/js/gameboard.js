@@ -2,7 +2,6 @@
 
 import {Direction, HexGrid} from './hexgrid.js'
 
-
 /**
  * This class handles the common code between drawing Tiles, Edges, and Corners.
  */
@@ -263,15 +262,15 @@ class GameBoard extends HexGrid {
 
     /**
      * @param data JSON string or JS object, structured just like the one for gameboard.py
-     * @param svg Either the CSS selector, or the actual jQuery object, for the SVG to which this board should be drawn.
+     * @param svgID ID of the SVG that holds the game board
      */
-    constructor(data, svg) {
+    constructor(data, svgID) {
         super();
         if (typeof data === "string") {
             data = JSON.parse(data)
         }
 
-        this.svg = $(svg);
+        this.svg = $("#" + svgID);
 
         if (data !== undefined) {
             var tiles = data['tiles'];
@@ -285,9 +284,24 @@ class GameBoard extends HexGrid {
             }
         }
 
-        $(document).on('mousewheel DOMMouseScroll', function(event){
-            console.log(`(${event.originalEvent.deltaX}, ${event.originalEvent.deltaY})`);
+        // Apparently Hammer doesn't like JQuery objects...
+        this.hammer = new Hammer(document.getElementById(svgID));
+        this.hammer.get("pan").set({enable: true, direction: Hammer.DIRECTION_ALL});
+        this.hammer.get("swipe").set({enable: false});
+        this.hammer.get("pinch").set({enable: true});
+        var self = this;
+        this.hammer.on('pan', function(event){
+            self.panHandler(event);
         });
+        this.hammer.on('pinch', function(event){
+            self.pinchZoomHandler(event);
+        });
+        function mouseWheel(event){
+            self.scrollZoomHandler(event);
+        }
+        this.svg.on("wheel", function(event){
+            self.scrollZoomHandler(event);
+        })
     }
 
     /**
@@ -525,17 +539,70 @@ class GameBoard extends HexGrid {
         this.viewbox = viewbox;
     }
 
-    scrollHandler(event){
-        console.log(`(${event.pageX}, ${event.pageY})`);
+    /**
+     * Handles pinch-zoom events from Hammer.js
+     * @param event Zoom event from Hammer.js
+     */
+    pinchZoomHandler(event){
+        // Because this event handler also deals with panning, it needs the same dx and dy code as the pan handler
+        var dx, dy, scale;
+        if(this.previousEvent && !this.previousEvent.isFinal){
+            dx = event.center.x - this.previousEvent.center.x;
+            dy = event.center.y - this.previousEvent.center.y;
+            scale =  this.previousEvent.scale / event.scale;
+        }else{
+            dx = 0;
+            dy = 0;
+            scale = event.scale;
+        }
+
+        dx = dx / this.svg.width();
+        dy = dy / this.svg.height();
+        this.previousEvent = event;
+        var x = event.center.x / this.svg.width();
+        var y = event.center.y / this.svg.height();
+        this.zoom(scale, [x, y]);
+        this.pan(-dx, -dy);
     }
 
-    //TODO: Add pan and zoom event listeners (Warning: Browser compatibility might be a nightmare).
+    scrollZoomHandler(event){
+        var zoom = 1 + event.originalEvent.deltaY / 100;
+        //TODO: Fix in Firefox. (The event.offsets are just plain wrong in Firefox)
+        var x = event.offsetX / this.svg.width();
+        var y = event.offsetY / this.svg.height();
+        this.zoom(zoom, [x, y]);
+        event.preventDefault();
+    }
+
+    /**
+     * Handles panning events to move board around
+     * @param event Pan event from Hammer.js
+     */
+    panHandler(event){
+        var dx, dy;
+        // The event.deltaX and event.deltaY values from Hammer.js represent the total deltas since this event
+        // first started. However, I just want the delta since the last time this event handler was triggered.
+        // Therefore, I store the previous event to compare.
+        if(this.previousEvent && !this.previousEvent.isFinal){
+            dx = event.deltaX - this.previousEvent.deltaX;
+            dy = event.deltaY - this.previousEvent.deltaY;
+        }else{
+            dx = event.deltaX;
+            dy = event.deltaY;
+        }
+        this.previousEvent = event;
+
+        // The pan(dx, dy) function takes arguments as a fraction of the width of the game board, so I have to scale
+        dx = dx / this.svg.width();
+        dy = dy / this.svg.height();
+        this.pan(-dx, -dy);
+    }
 }
 
 // The following are all for testing and will be removed.
 // TODO: Remove everything below this line
 
-window.board = new GameBoard(undefined, "#gameboard");
+window.board = new GameBoard(undefined, "gameboard");
 
 window.randResource = function () {
     var r = Math.random();
@@ -567,6 +634,7 @@ window.populate(5,5);
 window.board.get("0,0,EDGE_E").player = 1;
 window.board.get("0,0,CORNER_NE").player = 2;
 window.board.get("0,0,CORNER_NE").type = "city";
+window.board.zoom(0.5, [0.5, 0.5]);
 
 window.HexGrid = HexGrid;
 
