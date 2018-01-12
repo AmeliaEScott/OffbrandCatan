@@ -34,6 +34,11 @@
     clip-path: url(#hex-clip);
 }
 
+.unclickable {
+    pointer-events: none;
+}
+
+
 /*
 This class adds the "disabled" overlay to things you don't have the resources to build
 */

@@ -67,7 +67,35 @@ class Shape {
         var element = document.createElementNS("http://www.w3.org/2000/svg", "g");
         element.innerHTML = filledTemplate;
         element.setAttribute("data-coords", HexGrid.formatCoords(this.coords));
-        return element;
+        return $(element);
+    }
+
+    /**
+     * Enables this tile to be clicked, which means that click events will fire and the click overlay will show.
+     */
+    enableClick(){
+        this.element.find(".svg-click").attr("visibility", "visible");
+    }
+
+    /**
+     * Disables this tile from being clicked, which means the click overlay will be hidden.
+     */
+    disableClick(){
+        this.element.find(".svg-click").attr("visibility", "hidden");
+    }
+
+    /**
+     * Set a click event listener.
+     * @param func A function which takes two arguments: The first is the click event, the second is the
+     *      coordinates of this shape.
+     */
+    onClick(func){
+        var self = this;
+        this.element.find(".svg-click").click(function(event){
+            if(!self.board.ignoreClicks){
+                func(event, self.coords);
+            }
+        })
     }
 }
 
@@ -125,7 +153,7 @@ class Tile extends Shape {
             numbervisibility: this.data.number ? 'visibile' : 'hidden',
             href: resourceUrls[this.data.resourcetype]
         });
-        this.element.setAttribute("transform", this.getTransform());
+        this.element.attr("transform", this.getTransform());
 
         this.board.svg.find("#board-tiles").prepend(this.element);
 
@@ -182,7 +210,7 @@ class Edge extends Shape {
             edgetransform: edgeTransforms[this.coords.direction]
         });
 
-        this.element.setAttribute("transform", this.getTransform());
+        this.element.attr("transform", this.getTransform());
 
         this.board.svg.find("#board-edges").append(this.element);
     }
@@ -243,7 +271,7 @@ class Corner extends Shape {
             cornertransform: cornerTransforms[this.coords.direction]
         });
 
-        this.element.setAttribute("transform", this.getTransform());
+        this.element.attr("transform", this.getTransform());
 
         this.board.svg.find("#board-corners").append(this.element);
 
@@ -290,22 +318,42 @@ class GameBoard extends HexGrid {
         this.hammer.get("swipe").set({enable: false});
         this.hammer.get("pinch").set({enable: true});
         var self = this;
+
+        // At the end of a hammer event, a click event may or may not be triggered. The only way to prevent this
+        // from happening is to disable clicking when a hammer gesture is in progress, the re-enable it shortly
+        // after the event ends.
         this.hammer.on('pan', function(event){
+            self.ignoreClicks = true;
             self.panHandler(event);
+            if(event.isFinal){
+                setTimeout(function(){
+                    self.ignoreClicks = false;
+                }, 200);
+            }
         });
         this.hammer.on('pinch', function(event){
+            self.ignoreClicks = true;
             self.pinchZoomHandler(event);
+            if(event.isFinal){
+                setTimeout(function(){
+                    self.ignoreClicks = false;
+                }, 200);
+            }
         });
-        function mouseWheel(event){
-            self.scrollZoomHandler(event);
-        }
         this.svg.on("wheel", function(event){
+            self.ignoreClicks = true;
             self.scrollZoomHandler(event);
+            if(event.isFinal){
+                setTimeout(function(){
+                    self.ignoreClicks = false;
+                }, 200);
+            }
         })
     }
 
     /**
      * Adds a tile to the grid, along with all the edges and corners surrounding it, and displays it on the SVG.
+     * TODO: Attach existing event listeners to the new tile, and to its new edges and corners.
      * @param coords Coordinates of the tile
      * @param data Tile data
      * @param surroundings If true, then also add the edges and corners surrounding this tile.
@@ -563,6 +611,8 @@ class GameBoard extends HexGrid {
         var y = event.center.y / this.svg.height();
         this.zoom(scale, [x, y]);
         this.pan(-dx, -dy);
+
+        event.preventDefault();
     }
 
     scrollZoomHandler(event){
@@ -596,6 +646,8 @@ class GameBoard extends HexGrid {
         dx = dx / this.svg.width();
         dy = dy / this.svg.height();
         this.pan(-dx, -dy);
+
+        event.preventDefault();
     }
 }
 

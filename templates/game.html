@@ -34,13 +34,6 @@
             'desert': "{{ url_for('static', filename='images/hex_desert.png') }}"
         };
 
-        //TODO: Figure out a better way to handle player colors
-        var playerColors = {
-            1: "FF0000",
-            2: "222222",
-            3: "30C030"
-        };
-
         var playerIcons = {
         {% for player, color in playercolors.items() %}
             {{ player }}: {
@@ -129,64 +122,7 @@
                             </button>
                         </p>
                         <div class="svg-container">
-                            <!-- TODO: Figure out how to make this SVG available on several different pages.
-                                    (Will be needed for game creation as well as gameplay) -->
-                            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="gameboard"
-                                 viewBox="0 0 1 1" class="img-fluid" height="100%" width="100%" version="1.2">
-                                <defs>
-                                    <clipPath id="hex-clip" clipPathUnits="objectBoundingBox">
-                                        <!-- This clip path is generated on the server in clippath.py. -->
-                                        <path d="{{ hex_clip_path }}"></path>
-                                    </clipPath>
-
-                                    <!-- These templates are weird, and there is a reason for that.
-                                     In safari, to update the SVG, I need to basically recreate the entire element from scratch.
-                                     To do that, I grab these templates, get the HTML as a string, and replace the [[[]]] tags.
-                                     See Shape.fillTemplate in gameboard.js for more info.
-                                     Side note: Because of the [[[]]] template tags, the following few elements show
-                                     errors in IDEs, and also in the developer console when the webpage loads. This is fine,
-                                     because anything surrounded by [[[]]] gets replaced with (hopefully) good values
-                                     when the element is actually added to the SVG. -->
-
-                                    <!-- This serves as a template for creating new Hexagons to add to the game board. -->
-                                    <g id="hex-template">
-                                        <image class="hex-tile" x="0" y="0" width="1" height="1.155" href="[[[href]]]"
-                                               xlink:href="[[[href]]]"></image>
-                                        <circle cx="0.5" cy="0.577" r="0.1" fill="#D0D0D0" visibility="[[[numbervisibility]]]"
-                                                stroke-width="0.01" stroke="#000000"></circle>
-                                        <!-- The exact center of the hex in the Y direction is 0.577, but the text  didn't
-                                        look quite right there, so I moved it down to y=0.585. -->
-                                        <text text-anchor="middle" font-family="Serif" alignment-baseline="middle"
-                                              visibility="[[[numbervisibility]]]" font-size="0.1" x="0.5" y="0.585">[[[number]]]</text>
-                                    </g>
-
-                                    <!-- Template for edges (Roads and ports) -->
-                                    <g id="edge-template">
-                                        <image x="0.2115" y="0.2885" height="0.577" width="0.5" href="[[[href]]]"
-                                               xlink:href="[[[href]]]" visibility="[[[visibility]]]" transform="[[[edgetransform]]]"></image>
-                                    </g>
-
-                                    <!-- Template for corners (Cities and settlements) -->
-                                    <g id="corner-template">
-                                        <!-- The center of the hex tile is (0.5, 0.577). To center the settlement/city
-                                             image, it needs to be offset by height/2 in each direction. -->
-                                        <image x="0.35" y="0.427" height="0.3" width="0.3" visibility="[[[visibility]]]"
-                                               href="[[[href]]]" xlink:href="[[[href]]]" transform="[[[cornertransform]]]"></image>
-                                    </g>
-                                </defs>
-                                <rect x="-100" y="-100" width="200" height="200" fill="#D0D0D0"></rect>
-
-                                <g id="board-everything">
-                                    <!-- In SVG, the layers are decided by the order the elements appear in the file. I.e.,
-                                        the first element is drawn on the bottom, and the last one on top. I need roads and
-                                        settlements to always appear on top of tiles, regardless of the order they were added
-                                        to the SVG. So I have them be drawn inside of these group elements. -->
-                                    <g id="board-tiles"> </g>
-                                    <g id="board-edges"> </g>
-                                    <g id="board-corners"></g>
-                                </g>
-
-                            </svg>
+                            {% include "svgtemplate.html" %}
                         </div>
                     </div>
 
