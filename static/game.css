@@ -3,10 +3,6 @@
     max-height: 250px;
 }
 
-.img-overlay > img {
-    display: block;
-}
-
 .svg-container {
     overflow: hidden;
     height: 90vh;
@@ -38,6 +34,9 @@
     pointer-events: none;
 }
 
+.img-overlay > img {
+    display: block;
+}
 
 /*
 This class adds the "disabled" overlay to things you don't have the resources to build
@@ -68,11 +67,6 @@ This class adds the "disabled" overlay to things you don't have the resources to
     border-radius: 15%/10.1%;
 }
 
-.img-blue {
-    filter: hue-rotate(100deg);
-}
-
-
 html, body {
     overflow-x: hidden; /* When elements are hidden offscreen horizontally, this prevents scrolling to see them */
 }
@@ -80,7 +74,7 @@ html, body {
 /*
  * Off Canvas
  */
-@media screen and (max-width: 767px) {
+@media screen and (max-width: 992px) {
     .row-offcanvas {
         position: relative;
         -webkit-transition: all .25s ease-out;

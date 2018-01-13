@@ -348,7 +348,15 @@ class GameBoard extends HexGrid {
                     self.ignoreClicks = false;
                 }, 200);
             }
-        })
+        });
+
+        $(window).resize(function(){
+            var parent = self.svg.parent();
+            var width = parent.width();
+            var height = parent.height();
+            self.svg.height(height);
+            self.svg.width(width);
+        });
     }
 
     /**
@@ -642,9 +650,14 @@ class GameBoard extends HexGrid {
         }
         this.previousEvent = event;
 
-        // The pan(dx, dy) function takes arguments as a fraction of the width of the game board, so I have to scale
-        dx = dx / this.svg.width();
-        dy = dy / this.svg.height();
+        // The pan(dx, dy) function takes arguments as a fraction of the width of the game board, so I have to scale.
+        // However, because the viewbox is square, but the actual viewport in the browser might not be square.
+        // So find the minimum of the width and height and scale by that.
+        var width = this.svg.width();
+        var height = this.svg.height();
+        var scale = width < height ? width : height;
+        dx = dx / scale;
+        dy = dy / scale;
         this.pan(-dx, -dy);
 
         event.preventDefault();
@@ -654,44 +667,48 @@ class GameBoard extends HexGrid {
 // The following are all for testing and will be removed.
 // TODO: Remove everything below this line
 
-window.board = new GameBoard(undefined, "gameboard");
+$(document).ready(function(){
 
-window.randResource = function () {
-    var r = Math.random();
-    if (r < 0.166) {
-        return "desert";
-    } else if (r < 0.333) {
-        return "wheat";
-    } else if (r < 0.5) {
-        return "clay";
-    } else if (r < 0.666) {
-        return "rocks";
-    } else if (r < 0.8333) {
-        return "sheep";
-    } else {
-        return "wood";
-    }
-};
+    window.board = new GameBoard(undefined, "gameboard");
 
-window.populate = function (width, height) {
-    for (var x = 0; x < width; x++) {
-        for (var y = 0; y < height; y++) {
-            board.addTile([x, y], {resourcetype: randResource(), number: Math.ceil(Math.random() * 12)});
+    window.randResource = function () {
+        var r = Math.random();
+        if (r < 0.166) {
+            return "desert";
+        } else if (r < 0.333) {
+            return "wheat";
+        } else if (r < 0.5) {
+            return "clay";
+        } else if (r < 0.666) {
+            return "rocks";
+        } else if (r < 0.8333) {
+            return "sheep";
+        } else {
+            return "wood";
         }
-    }
-    window.board.draw();
-};
+    };
 
-window.populate(5,5);
-window.board.get("0,0,EDGE_E").player = 1;
-window.board.get("0,0,CORNER_NE").player = 2;
-window.board.get("0,0,CORNER_NE").type = "city";
-window.board.zoom(0.5, [0.5, 0.5]);
+    window.populate = function (width, height) {
+        for (var x = 0; x < width; x++) {
+            for (var y = 0; y < height; y++) {
+                board.addTile([x, y], {resourcetype: randResource(), number: Math.ceil(Math.random() * 12)});
+            }
+        }
+        window.board.draw();
+    };
 
-window.HexGrid = HexGrid;
+    window.populate(6,6);
+    window.board.get("0,0,EDGE_E").player = 1;
+    window.board.get("0,0,CORNER_NE").player = 2;
+    window.board.get("0,0,CORNER_NE").type = "city";
+    window.board.zoom(0.5, [0.5, 0.5]);
 
-window.addCorner = function(coords, player, type){
-    var place = window.board.get(coords);
-    place.type = type;
-    place.player = player;
-};
+    window.HexGrid = HexGrid;
+
+    window.addCorner = function(coords, player, type){
+        var place = window.board.get(coords);
+        place.type = type;
+        place.player = player;
+    };
+
+});
