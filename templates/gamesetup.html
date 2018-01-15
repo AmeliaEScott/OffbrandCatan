@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Catan Game Setup</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css"
+          integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+    <link rel="stylesheet" href="{{ url_for('static', filename='game.css', v=version) }}">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js"
+            integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh"
+            crossorigin="anonymous"></script>
+    <!--script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js"
+            integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb"
+            crossorigin="anonymous"></script-->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js"
+            integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ"
+            crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/hammerjs/2.0.8/hammer.min.js"></script>
+
+    <script type="text/javascript">
+        // This global variable is used to draw the game board.
+        // It is in this HTML file because it needs to be generated dynamically using templates.
+        // This is because, if this entire app is hosted at something like /game, all of these static URLs will change.
+
+        var resourceUrls = {
+            'wheat': "{{ url_for('static', filename='images/hex_wheat.png') }}",
+            'clay': "{{ url_for('static', filename='images/hex_clay.png') }}",
+            'rocks': "{{ url_for('static', filename='images/hex_rocks.png') }}",
+            'sheep': "{{ url_for('static', filename='images/hex_sheep.png') }}",
+            'wood': "{{ url_for('static', filename='images/hex_wood.png') }}",
+            'desert': "{{ url_for('static', filename='images/hex_desert.png') }}"
+        };
+
+        var playerIcons = {
+            '0': {
+                'city': '{{ url_for('gameplay.get_icon', icon='city', color='E02020') }}',
+                'settlement': '{{ url_for('gameplay.get_icon', icon='settlement', color='E02020') }}',
+                'road': '{{ url_for('gameplay.get_icon', icon='road', color='E02020') }}',
+            }
+        }
+
+    </script>
+    <!-- I do not have much of a handle on how JS modules work. I don't think I need hexgrid.js here... -->
+    <!--script type="module" src="{{ url_for('static', filename='js/hexgrid.js') }}"></script-->
+    <script type="module" src="{{ url_for('static', filename='js/gamesetup.js') }}"></script>
+
+</head>
+<body>
+
+<nav class="navbar navbar-expand-sm navbar-light bg-light">
+    <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbar">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbar">
+        <ul class="nav navbar-nav mr-auto" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" data-toggle="tab" href="#info-tab" role="tab">Game Info</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-toggle="tab" href="#board-tab" role="tab">Game Board</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-toggle="tab" href="#rules-tab" role="tab">Rules</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<div class="container-fluid">
+    <div class="tab-content">
+        <!-- "Game Info" Tab -->
+        <div id="info-tab" class="tab-pane active">
+            <h1>This is a placeholder</h1>
+            <p>The game id is {{ game_id }}</p>
+        </div>
+
+        <!-- "Game Board" Tab -->
+        <div id="board-tab" class="tab-pane">
+            <div class="row row-offcanvas row-offcanvas-right">
+                <div class="col-12 col-lg-9">
+                    <div style="position: relative;">
+                        <p class="d-lg-none sidebar-button">
+                            <button type="button" class="btn btn-lg btn-primary" data-toggle="offcanvas">Toggle the thingy
+                            </button>
+                        </p>
+                        <div class="svg-container">
+                            {% include "svgtemplate.html" %}
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="col-9 col-lg-3 sidebar-offcanvas" id="sidebar">
+                    <div id="sidebar-accordion" role="tablist">
+                        <div class="card">
+                            <div class="card-header" role="tab" id="resources-card-header"
+                                 data-toggle="collapse" data-target="#resources-card">
+                                <h5> Automatic </h5>
+                            </div>
+                            <div id="resources-card" class="collapse show" role="tabpanel" data-parent="#sidebar-accordion">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <form>
+                                            <div class="form-group">
+                                                <label for="automatic-board-size">Board Size</label>
+                                                <select class="form-control" id="automatic-board-size">
+                                                    <option value="test">Test</option>
+                                                    <option value="standard">Standard</option>
+                                                    <option value="standard56">Standard + 5-6 players</option>
+                                                    <option value="seafarers" disabled>Seafarers</option>
+                                                    <option value="seafarers56" disabled>Seafarers + 5-6 players</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <input type="checkbox" id="automatic-prevent-adjacent">
+                                                <label for="automatic-prevent-adjacent">No adjacent tiles with same resource</label>
+                                            </div>
+
+                                            <div class="form-row">
+                                                <label class="col-10 col-form-label" for="automatic-number-wheat">Wheat</label>
+                                                <input type="number" class="form-control col-2" id="automatic-number-wheat">
+                                            </div>
+                                            <div class="form-row">
+                                                <label class="col-10 col-form-label" for="automatic-number-sheep">Sheep</label>
+                                                <input type="number" class="form-control col-2" id="automatic-number-sheep">
+                                            </div>
+                                            <div class="form-row">
+                                                <label class="col-10 col-form-label" for="automatic-number-rocks">Rock</label>
+                                                <input type="number" class="form-control col-2" id="automatic-number-rocks">
+                                            </div>
+                                            <div class="form-row">
+                                                <label class="col-10 col-form-label" for="automatic-number-wood">Wood</label>
+                                                <input type="number" class="form-control col-2" id="automatic-number-wood">
+                                            </div>
+                                            <div class="form-row">
+                                                <label class="col-10 col-form-label" for="automatic-number-clay">Clay</label>
+                                                <input type="number" class="form-control col-2" id="automatic-number-clay">
+                                            </div>
+                                            <div class="form-row">
+                                                <label class="col-10 col-form-label" for="automatic-number-desert">Desert</label>
+                                                <input type="number" class="form-control col-2" id="automatic-number-desert">
+                                            </div>
+                                            <div class="form-row">
+                                                <label class="col-10 col-form-label" for="automatic-number-gold">Gold</label>
+                                                <input type="number" class="form-control col-2" id="automatic-number-gold">
+                                            </div>
+                                            <div class="form-row">
+                                                <label class="col-10 col-form-label" for="automatic-number-ocean">Ocean</label>
+                                                <input type="number" class="form-control col-2" id="automatic-number-ocean">
+                                            </div>
+
+                                            <div class="invalid-feedback" id="automatic-too-many-resources">
+                                                You have chosen too many tiles for the selected board size.
+                                            </div>
+                                            <div class="invalid-feedback" id="automatic-too-few-resources">
+                                                You have chosen too few tiles for the selected board size.
+                                            </div>
+
+                                            <button class="btn btn-info" id="automatic-submit-button">Generate Board</button>
+
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header" role="tab" id="building-card-header"
+                                 data-toggle="collapse" data-target="#building-card">
+                                <h5> Manual </h5>
+                            </div>
+                            <div id="building-card" class="collapse" role="tabpanel"
+                                 data-parent="#sidebar-accordion">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <h1>PLACEHOLDER</h1>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <!-- "My Resources" Tab -->
+        <div id="rules-tab" class="tab-pane">
+            <h3>I'm running out of things to type here</h3>
+        </div>
+
+    </div>
+</div>
+
+<script type="text/javascript">
+    "use strict";
+
+    $(document).ready(function () {
+        $('[data-toggle="offcanvas"]').click(function () {
+            $('.row-offcanvas').toggleClass('active');
+        });
+
+        var navbar = $("#navbar");
+
+        navbar.find('a[data-toggle="tab"]').on('click', function () {
+            $('#navbar').collapse('hide');
+            $('.row-offcanvas').removeClass('active');
+        }).on('shown.bs.tab', function () {
+            // The resize is needed so that the SVG can update its aspect ratio, since its container's width
+            // is zero when it isn't the active tab.
+            $(window).resize();
+        });
+    });
+</script>
+
+</body>
+</html>

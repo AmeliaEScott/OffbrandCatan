@@ -67,6 +67,10 @@ class Shape {
         var element = document.createElementNS("http://www.w3.org/2000/svg", "g");
         element.innerHTML = filledTemplate;
         element.setAttribute("data-coords", HexGrid.formatCoords(this.coords));
+        if(data['href'] === undefined){
+            console.log("Got no href");
+            console.log(data);
+        }
         return $(element);
     }
 
@@ -127,9 +131,17 @@ class Tile extends Shape {
         this.draw();
     }
 
+    get number(){
+        return this.data.number;
+    }
+
     set resourcetype(resourcetype) {
         this.data.resourcetype = resourcetype;
         this.draw();
+    }
+
+    get resourcetype(){
+        return this.data.resourcetype;
     }
 
     set thief(thief) {
@@ -137,9 +149,17 @@ class Tile extends Shape {
         this.draw();
     }
 
+    get thief(){
+        return this.data.thief;
+    }
+
     set facedown(facedown) {
         this.data.facedown = facedown;
         this.draw();
+    }
+
+    get facedown(){
+        return this.data.facedown;
     }
 
     /**
@@ -196,9 +216,17 @@ class Edge extends Shape {
         this.draw();
     }
 
+    get player(){
+        return this.data.player;
+    }
+
     set port(port) {
         this.data.port = port;
         this.draw();
+    }
+
+    get port(){
+        return this.data.port();
     }
 
     draw() {
@@ -246,9 +274,17 @@ class Corner extends Shape {
         this.draw();
     }
 
+    get player(){
+        return this.data.player;
+    }
+
     set type(type){
         this.data.type = type;
         this.draw();
+    }
+
+    get type(){
+        return this.data.type;
     }
 
     draw(){
@@ -279,7 +315,7 @@ class Corner extends Shape {
 }
 
 /**
- * @requires HexGrid, Direction
+ * @requires HexGrid, Direction, Hammer
  *
  * Includes all of the functionality of gameboard.py, plus that necessary to draw the tiles in an SVG element.
  */
@@ -360,6 +396,27 @@ class GameBoard extends HexGrid {
     }
 
     /**
+     * Remove the specified location from the board, and undraw it
+     * @param coords Coordinates to remove
+     */
+    remove(coords){
+        coords = HexGrid.formatCoords(coords);
+        if(this.tiles.hasOwnProperty(coords)){
+            this.tiles[coords].undraw();
+            delete this.tiles[coords];
+        }
+    }
+
+    /**
+     * Deletes everything from the board and undraws it all
+     */
+    clear(){
+        for(var coords in this.tiles){
+            this.remove(coords);
+        }
+    }
+
+    /**
      * Adds a tile to the grid, along with all the edges and corners surrounding it, and displays it on the SVG.
      * TODO: Attach existing event listeners to the new tile, and to its new edges and corners.
      * @param coords Coordinates of the tile
@@ -420,8 +477,14 @@ class GameBoard extends HexGrid {
 
     asJSON() {
         // TODO: Make it iterate through the tiles and grab tile.data
+        var tiledata = {};
+        for(var coords in this.tiles){
+            if(this.tiles.hasOwnProperty(coords)){
+                tiledata[coords] = this.tiles[coords].data;
+            }
+        }
         return {
-            tiles: this.tiles
+            tiles: tiledata
         }
     }
 
@@ -562,7 +625,29 @@ class GameBoard extends HexGrid {
      */
     zoom(deltazoom, [cx, cy]) {
 
+        //TODO: Fix this to account for different aspect ratios of the SVG
+        //TODO: Change to use pixel coordinates
+
         var viewbox = this.viewbox;
+        var width = this.svg.width();
+        var height = this.svg.height();
+        var size;
+        if((viewbox.maxx - viewbox.minx < 0.01 || viewbox.maxy - viewbox.miny < 0.01) && deltazoom < 1){
+            return;
+        }
+        //console.log(`Delta-zoom: ${deltazoom}`);
+        if(width < height){
+            size = width;
+            cy -= (height - width) / 2;
+        }else{
+            size = height;
+            cx -= (width - height) / 2;
+        }
+        if(size <= 10){
+            size = 10;
+        }
+        cx /= size;
+        cy /= size;
 
         // Transforms (cx, cy) into viewbox coordinates
         cx = (cx * viewbox.maxx) + (1.0 - cx) * viewbox.minx;
@@ -579,11 +664,20 @@ class GameBoard extends HexGrid {
 
     /**
      * Moves the viewbox around without zooming it
-     * @param dx Change in x direction, such that 1.0 is the width of the viewbox
-     * @param dy Change in y direction, such that 1.0 is the width of the viewbox
+     * @param dx Change in x direction, in pixels
+     * @param dy Change in y direction, in pixels
      */
     pan(dx, dy){
         var viewbox = this.viewbox;
+
+        // The pan(dx, dy) function takes arguments as a fraction of the width of the game board, so I have to scale.
+        // However, because the viewbox is square, but the actual viewport in the browser might not be square.
+        // So find the minimum of the width and height and scale by that.
+        var width = this.svg.width();
+        var height = this.svg.height();
+        var size = width < height ? width : height;
+        dx = dx / size;
+        dy = dy / size;
 
         // Transform the dx into viewbox coordinates
         dx = dx * (viewbox.maxx - viewbox.minx);
@@ -612,12 +706,9 @@ class GameBoard extends HexGrid {
             scale = event.scale;
         }
 
-        dx = dx / this.svg.width();
-        dy = dy / this.svg.height();
+
         this.previousEvent = event;
-        var x = event.center.x / this.svg.width();
-        var y = event.center.y / this.svg.height();
-        this.zoom(scale, [x, y]);
+        this.zoom(scale, [event.center.x, event.center.y]);
         this.pan(-dx, -dy);
 
         event.preventDefault();
@@ -625,10 +716,11 @@ class GameBoard extends HexGrid {
 
     scrollZoomHandler(event){
         var zoom = 1 + event.originalEvent.deltaY / 100;
+        if(zoom < 0.01){
+            zoom = 0.01;
+        }
         //TODO: Fix in Firefox. (The event.offsets are just plain wrong in Firefox)
-        var x = event.offsetX / this.svg.width();
-        var y = event.offsetY / this.svg.height();
-        this.zoom(zoom, [x, y]);
+        this.zoom(zoom, [event.offsetX, event.offsetY]);
         event.preventDefault();
     }
 
@@ -653,62 +745,15 @@ class GameBoard extends HexGrid {
         // The pan(dx, dy) function takes arguments as a fraction of the width of the game board, so I have to scale.
         // However, because the viewbox is square, but the actual viewport in the browser might not be square.
         // So find the minimum of the width and height and scale by that.
-        var width = this.svg.width();
-        var height = this.svg.height();
-        var scale = width < height ? width : height;
-        dx = dx / scale;
-        dy = dy / scale;
+        // var width = this.svg.width();
+        // var height = this.svg.height();
+        // var size = width < height ? width : height;
+        // dx = dx / size;
+        // dy = dy / size;
         this.pan(-dx, -dy);
 
         event.preventDefault();
     }
 }
 
-// The following are all for testing and will be removed.
-// TODO: Remove everything below this line
-
-$(document).ready(function(){
-
-    window.board = new GameBoard(undefined, "gameboard");
-
-    window.randResource = function () {
-        var r = Math.random();
-        if (r < 0.166) {
-            return "desert";
-        } else if (r < 0.333) {
-            return "wheat";
-        } else if (r < 0.5) {
-            return "clay";
-        } else if (r < 0.666) {
-            return "rocks";
-        } else if (r < 0.8333) {
-            return "sheep";
-        } else {
-            return "wood";
-        }
-    };
-
-    window.populate = function (width, height) {
-        for (var x = 0; x < width; x++) {
-            for (var y = 0; y < height; y++) {
-                board.addTile([x, y], {resourcetype: randResource(), number: Math.ceil(Math.random() * 12)});
-            }
-        }
-        window.board.draw();
-    };
-
-    window.populate(6,6);
-    window.board.get("0,0,EDGE_E").player = 1;
-    window.board.get("0,0,CORNER_NE").player = 2;
-    window.board.get("0,0,CORNER_NE").type = "city";
-    window.board.zoom(0.5, [0.5, 0.5]);
-
-    window.HexGrid = HexGrid;
-
-    window.addCorner = function(coords, player, type){
-        var place = window.board.get(coords);
-        place.type = type;
-        place.player = player;
-    };
-
-});
+export {GameBoard};
