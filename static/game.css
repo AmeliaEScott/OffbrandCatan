@@ -38,6 +38,10 @@
     display: block;
 }
 
+.hidden {
+    display: none;
+}
+
 /*
 This class adds the "disabled" overlay to things you don't have the resources to build
 */

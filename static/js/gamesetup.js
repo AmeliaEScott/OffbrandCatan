@@ -70,19 +70,19 @@ var automaticOptions = {
     boardSize: 'standard',
     resourceCounts: Object.assign({}, resourceCounts.standard),
     coordinates: new Set(coordinateSets.standard),
-    preventAdjacent: false
+    preventAdjacent: false,
+    minCornerScore: 8,
+    maxCornerScore: 12
 };
 
 $(document).ready(function(){
     $("#automatic-board-size").change(function(){
         var boardsize = $(this).val();
         automaticOptions.boardSize = boardsize;
-        console.log(`Changed board size to ${boardsize}`);
         for(var resource in resourceCounts[boardsize]){
             if(resourceCounts[boardsize].hasOwnProperty(resource)){
                 $(`#automatic-number-${resource}`).val(resourceCounts[boardsize][resource]);
                 automaticOptions.resourceCounts[resource] = resourceCounts[boardsize][resource];
-                console.log(`Updating count of ${resource} to ${resourceCounts[boardsize][resource]}`);
             }
         }
         automaticOptions.coordinates = new Set(coordinateSets[boardsize]);
@@ -96,6 +96,31 @@ $(document).ready(function(){
         event.preventDefault();
         generate();
     });
+
+    $("#automatic-fill-numbers").click(function(event){
+        event.preventDefault();
+        var startCoords;
+        for(var coords in board.tiles){
+            if(board.tiles.hasOwnProperty(coords) && GameBoard.isTile(coords)){
+                var tile = board.get(coords);
+                if(tile.resourcetype != 'desert' && tile.resourcetype != 'ocean') {
+                    startCoords = coords;
+                }
+                tile.number = undefined;
+            }
+        }
+        var button = $(this);
+        button.prop("disabled", true);
+        var message = $("#automatic-fill-numbers-wait");
+        message.show();
+        setTimeout(function(){
+            console.log(fillNumbers(getNumbers(), startCoords));
+            board.draw();
+            button.prop("disabled", false);
+            message.hide();
+        }, 100);
+
+    })
 });
 
 function generate(){
@@ -131,18 +156,6 @@ function shuffle(array) {
   }
 
   return array;
-}
-
-function randomResource(resources){
-    var resourceList = [];
-    for(var resource in resources){
-        if(resources.hasOwnProperty(resource)){
-            for(let i = 0; i < resources[resource]; i++){
-                resourceList.push(resource);
-            }
-        }
-    }
-    return resourceList[Math.floor(Math.random() * resourceList.length)];
 }
 
 /**
@@ -201,9 +214,131 @@ function fillBoard(resourcesLeft, coordsLeft, coords){
     return false;
 }
 
+/**
+ * Calculates the probability of the given number being rolled on two dice.
+ * Equivalent to the number of dots on the number tile in Catan
+ * @param num Number to calculate probability of
+ * @returns {number} Probability between 1 and 5 (inclusive)
+ */
+function prob(num){
+    if(num > 7){
+        num = 14 - num;
+    }
+    return num - 1;
+}
+
+/**
+ * Calculates how many of each number tile should be placed on the board.
+ * @returns {{}} A dictionary with a key for each number between 2 and 12 (inclusive, except 7)
+ */
+function getNumbers(){
+    var numbers = {2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0};
+    var currentNumber = 6;
+    for(var coords in board.tiles){
+        // Iterate over every tile that would have a number on it
+        if(board.tiles.hasOwnProperty(coords) && GameBoard.isTile(coords) && board.get(coords).resourcetype != 'desert'
+            && board.get(coords).resourcetype != 'ocean'){
+            numbers[currentNumber]++;
+            // This loops goes in the order 6, 8, 5, 9, 4, 10, 3, 11, 2, 12, then loops back to 6.
+            // This way, the numbers are slightly weighted toward the middle (6, 8) range
+            if(currentNumber < 7){
+                currentNumber = 14 - currentNumber;
+            }else{
+                currentNumber = 13 - currentNumber;
+            }
+            if(currentNumber < 2){
+                currentNumber = 6;
+            }
+        }
+    }
+    return numbers;
+}
+
+function cornerScore(coords){
+    var score = 0;
+    for(var adjacentCoords of board.getTileNeighbors(coords, true)){
+        var tile = board.get(adjacentCoords);
+        score += prob(parseInt(board.get(adjacentCoords).number));
+    }
+    return score;
+}
+
+function fillNumbers(numbersLeft, coords){
+    //TODO: Fix this shit
+    // The problem is that, when backtracking more than one step, tiles are not removed from the board.
+    // To fix this, change the iteration order to go left-right top-bottom (or something like that),
+    // so that, from each tile, only one more tile is recurse'd to
+    var numbersToTry = [];
+    var number;
+    coords = GameBoard.formatCoords(coords);
+    for(number in numbersLeft){
+        if(numbersLeft.hasOwnProperty(number) && numbersLeft[number] > 0){
+            numbersToTry.push(number);
+        }
+    }
+    shuffle(numbersToTry);
+    for(number of numbersToTry){
+        number = parseInt(number);
+        board.get(coords).number = number;
+        var badScore = false;
+        // First, check to see if the current number fits the restrictions
+        for(var adjacentCorner of board.getCornerNeighbors(coords)){
+            var score = cornerScore(adjacentCorner);
+            var numNeighbors = board.getTileNeighbors(adjacentCorner, true).length;
+            //console.log(adjacentCorner);
+            //console.log(`The score of ${GameBoard.formatCoords(adjacentCorner)} is ${score}`);
+            if(score && numNeighbors >= 3
+                && (score < automaticOptions.minCornerScore || score > automaticOptions.maxCornerScore)){
+                badScore = true;
+                //console.log(`${score} is a BAD score`);
+            }else{
+                //console.log(`${score} is a good score!`);
+            }
+
+        }
+        // If this number breaks the constraints, try again.
+        if(badScore){
+            //console.log(`${number} doesn't work, moving on`);
+            board.get(coords).number = undefined;
+            continue;
+        }else{
+            //console.log(`${number} worked just fine!`);
+        }
+
+        numbersLeft[number]--;
+        var success = true;
+        for(var adjacentCoords of board.getTileNeighbors(coords, true)){
+            var tile = board.get(adjacentCoords);
+            if(!tile.number && tile.resourcetype != 'desert' && tile.resourcetype != 'ocean'){
+                if(!fillNumbers(numbersLeft, adjacentCoords)) {
+                    success = false;
+                }
+            }
+        }
+        if(success){
+            return true;
+        }
+        board.get(coords).number = undefined;
+        numbersLeft[number]++;
+    }
+    return false;
+}
+
 //TODO: Remove everything below this line
 
 window.board = board;
 window.automaticOptions = automaticOptions;
 window.resourceCounts = resourceCounts;
 window.coordinateSets = coordinateSets;
+window.getNumbers = getNumbers;
+window.fillNumbers = fillNumbers;
+window.cornerScore = cornerScore;
+window.GameBoard = GameBoard;
+
+window.allCornerScores = function(){
+    for(var coords in board.tiles){
+        if(GameBoard.isCorner(coords) && board.getTileNeighbors(coords, true).length > 2){
+            console.log(`${GameBoard.formatCoords(coords)}: ${cornerScore(coords)}`);
+        }
+    }
+};

@@ -128,7 +128,7 @@ class Tile extends Shape {
 
     set number(number) {
         this.data.number = number;
-        this.draw();
+        //this.draw();
     }
 
     get number(){
@@ -137,7 +137,7 @@ class Tile extends Shape {
 
     set resourcetype(resourcetype) {
         this.data.resourcetype = resourcetype;
-        this.draw();
+        //this.draw();
     }
 
     get resourcetype(){
@@ -146,7 +146,7 @@ class Tile extends Shape {
 
     set thief(thief) {
         this.data.thief = thief;
-        this.draw();
+        //this.draw();
     }
 
     get thief(){
@@ -155,7 +155,7 @@ class Tile extends Shape {
 
     set facedown(facedown) {
         this.data.facedown = facedown;
-        this.draw();
+        //this.draw();
     }
 
     get facedown(){
@@ -213,7 +213,7 @@ class Edge extends Shape {
 
     set player(player) {
         this.data.player = player;
-        this.draw();
+        //this.draw();
     }
 
     get player(){
@@ -222,7 +222,7 @@ class Edge extends Shape {
 
     set port(port) {
         this.data.port = port;
-        this.draw();
+        //this.draw();
     }
 
     get port(){
@@ -271,7 +271,7 @@ class Corner extends Shape {
 
     set player(player){
         this.data.player = player;
-        this.draw();
+        //this.draw();
     }
 
     get player(){
@@ -280,7 +280,7 @@ class Corner extends Shape {
 
     set type(type){
         this.data.type = type;
-        this.draw();
+        //this.draw();
     }
 
     get type(){
