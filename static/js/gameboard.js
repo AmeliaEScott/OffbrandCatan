@@ -125,6 +125,7 @@ class Tile extends Shape {
     }
 
     // These setters are just minor conveniences: They automatically redraw the shape when its data changes.
+    // TODO: Get rid of these getters and setters in all three subclasses of Shape. Turns out I don't want them.
 
     set number(number) {
         this.data.number = number;
