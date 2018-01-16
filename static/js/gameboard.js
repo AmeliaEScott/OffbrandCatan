@@ -76,9 +76,16 @@ class Shape {
 
     /**
      * Enables this tile to be clicked, which means that click events will fire and the click overlay will show.
+     * @param visible {boolean} If true, then click outline is visible. If false, it is not.
      */
-    enableClick(){
-        this.element.find(".svg-click").attr("visibility", "visible");
+    enableClick(visible=true){
+        var element = this.element.find(".svg-click");
+        element.attr("visibility", "visible");
+        if(!visible){
+            element.addClass("seethrough");
+        }else{
+            element.removeClass("seethrough");
+        }
     }
 
     /**
@@ -101,6 +108,13 @@ class Shape {
             }
         })
     }
+
+    /**
+     * Returns this object as a much simpler object with only the necessary information.
+     */
+    asJSON() {
+        throw new Error("You forgot to implement the asJSON method.");
+    }
 }
 
 /**
@@ -121,46 +135,10 @@ class Tile extends Shape {
     constructor(coords, board, {number: number, resourcetype: resourcetype, thief: thief, facedown: facedown} =
     {number: 0, resourcetype: null, thief: false, facedown: false}) {
         super(coords, board, "#hex-template");
-        this.data = {number, resourcetype, thief, facedown};
-    }
-
-    // These setters are just minor conveniences: They automatically redraw the shape when its data changes.
-    // TODO: Get rid of these getters and setters in all three subclasses of Shape. Turns out I don't want them.
-
-    set number(number) {
-        this.data.number = number;
-        //this.draw();
-    }
-
-    get number(){
-        return this.data.number;
-    }
-
-    set resourcetype(resourcetype) {
-        this.data.resourcetype = resourcetype;
-        //this.draw();
-    }
-
-    get resourcetype(){
-        return this.data.resourcetype;
-    }
-
-    set thief(thief) {
-        this.data.thief = thief;
-        //this.draw();
-    }
-
-    get thief(){
-        return this.data.thief;
-    }
-
-    set facedown(facedown) {
-        this.data.facedown = facedown;
-        //this.draw();
-    }
-
-    get facedown(){
-        return this.data.facedown;
+        this.number = number;
+        this.resourcetype = resourcetype;
+        this.thief = thief;
+        this.facedown = facedown;
     }
 
     /**
@@ -170,15 +148,26 @@ class Tile extends Shape {
         this.element.remove();
 
         this.element = this.fillTemplate({
-            number: this.data.number,
-            numbervisibility: this.data.number ? 'visibile' : 'hidden',
-            href: resourceUrls[this.data.resourcetype]
+            number: this.number,
+            numbervisibility: this.number ? 'visibile' : 'hidden',
+            href: resourceUrls[this.resourcetype],
+            tilevisibility: this.resourcetype ? 'visible' : 'hidden',
+            thiefvisibility: this.thief ? 'visible' : 'hidden'
         });
         this.element.attr("transform", this.getTransform());
 
         this.board.svg.find("#board-tiles").prepend(this.element);
 
         //TODO: Draw thief. Also, handle facedown-ness
+    }
+
+    asJSON(){
+        return {
+            number: this.number,
+            resourcetype: this.resourcetype,
+            thief: this.thief,
+            facedown: this.facedown
+        };
     }
 }
 
@@ -197,7 +186,6 @@ const edgeTransforms = {
 
 /**
  * Represents an edge between tiles on the board. Can display a road and a port.
- * TODO: Ports
  */
 class Edge extends Shape {
 
@@ -205,43 +193,62 @@ class Edge extends Shape {
      * @param coords Coordinates of this edge
      * @param board Parent board
      * @param player Player ID who owns the road, if any
-     * @param port TODO: Seriously, figure out ports!
+     * @param port {{resource: undefined | string, cost: number, reward: number}} Should be non-null if this edge
+     * has a port.
+     * TODO: Also, figure out ships
      */
     constructor(coords, board, {player: player, port: port} = {player: null, port: null}) {
         super(coords, board, "#edge-template");
-        this.data = {player, port};
-    }
-
-    set player(player) {
-        this.data.player = player;
-        //this.draw();
-    }
-
-    get player(){
-        return this.data.player;
-    }
-
-    set port(port) {
-        this.data.port = port;
-        //this.draw();
-    }
-
-    get port(){
-        return this.data.port();
+        this.player = player;
+        this.port = port;
     }
 
     draw() {
         this.element.remove();
 
+        var thisTile = board.get({x: this.coords.x, y: this.coords.y});
+        var porttransform;
+        if(!thisTile || thisTile.resourcetype === 'ocean'){
+            porttransform = "rotate(180, 0.5, 0.577)";
+        }else{
+            porttransform = "";
+        }
+        if(this.coords.x < 1 && this.coords.y < 1){
+            console.log(`Port transform at ${GameBoard.formatCoords(this.coords)}: ${porttransform}`);
+        }
+        var porthref;
+        var resourcevisibility;
+        if(this.port && this.port.resource){
+            porthref = resourceCardUrls[this.port.resource];
+            resourcevisibility = "inherit";
+        }else{
+            porthref = "";
+            resourcevisibility = "hidden";
+        }
+
         this.element = this.fillTemplate({
-            href: this.data.player ? playerIcons[this.data.player]['road'] : "",
-            visibility: this.data.player ? 'visible' : 'hidden',
-            edgetransform: edgeTransforms[this.coords.direction]
+            href: this.player ? playerIcons[this.player]['road'] : "",
+            visibility: this.player ? 'visible' : 'hidden',
+            edgetransform: edgeTransforms[this.coords.direction],
+            portvisibility: this.port ? 'visible' : 'hidden',
+            porttransform: porttransform,
+            porthref: porthref,
+            cost: this.port ? this.port.cost : 0,
+            reward: this.port ? this.port.reward : 0,
+            resourcevisibility: resourcevisibility,
+            questionmarkvisibility: resourcevisibility === 'hidden' ? 'inherit' : 'hidden'
         });
 
         this.element.attr("transform", this.getTransform());
 
         this.board.svg.find("#board-edges").append(this.element);
+    }
+
+    asJSON(){
+        return {
+            player: this.player,
+            port: this.port
+        }
     }
 }
 
@@ -267,40 +274,23 @@ class Corner extends Shape {
 
     constructor(coords, board, {player: player, type: type} = {player: null, type: null}){
         super(coords, board, "#corner-template");
-        this.data = {player, type};
-    }
-
-    set player(player){
-        this.data.player = player;
-        //this.draw();
-    }
-
-    get player(){
-        return this.data.player;
-    }
-
-    set type(type){
-        this.data.type = type;
-        //this.draw();
-    }
-
-    get type(){
-        return this.data.type;
+        this.player = player;
+        this.type = type;
     }
 
     draw(){
         this.element.remove();
 
         var href;
-        if(this.data.type === "settlement" && this.data.player){
-            href = playerIcons[this.data.player]['settlement'];
-        }else if(this.data.type === "city" && this.data.player){
-            href = playerIcons[this.data.player]['city']
+        if(this.type === "settlement" && this.player){
+            href = playerIcons[this.player]['settlement'];
+        }else if(this.type === "city" && this.player){
+            href = playerIcons[this.player]['city']
         }else{
             href = "";
         }
 
-        var visible = href && this.data.player;
+        var visible = href && this.player;
 
         this.element = this.fillTemplate({
             href: href,
@@ -312,6 +302,13 @@ class Corner extends Shape {
 
         this.board.svg.find("#board-corners").append(this.element);
 
+    }
+
+    asJSON(){
+        return {
+            player: this.player,
+            type: this.type
+        }
     }
 }
 
@@ -378,13 +375,7 @@ class GameBoard extends HexGrid {
             }
         });
         this.svg.on("wheel", function(event){
-            self.ignoreClicks = true;
             self.scrollZoomHandler(event);
-            if(event.isFinal){
-                setTimeout(function(){
-                    self.ignoreClicks = false;
-                }, 200);
-            }
         });
 
         $(window).resize(function(){
@@ -401,11 +392,8 @@ class GameBoard extends HexGrid {
      * @param coords Coordinates to remove
      */
     remove(coords){
-        coords = HexGrid.formatCoords(coords);
-        if(this.tiles.hasOwnProperty(coords)){
-            this.tiles[coords].undraw();
-            delete this.tiles[coords];
-        }
+        this.get(coords).undraw();
+        super.remove(coords);
     }
 
     /**
@@ -446,8 +434,6 @@ class GameBoard extends HexGrid {
                 }
             }
         }
-
-        tile.draw();
     }
 
     addCorner(coords, {player: player, type: type} = {player: null, type: null}) {
@@ -457,7 +443,6 @@ class GameBoard extends HexGrid {
             this.remove(coords);
         }
         this.set(coords, corner);
-        corner.draw();
     }
 
     addEdge(coords, {player: player, port: port} = {player: null, port: null}) {
@@ -467,13 +452,6 @@ class GameBoard extends HexGrid {
             this.remove(coords);
         }
         this.set(coords, edge);
-        edge.draw();
-    }
-
-    remove(coords) {
-        coords = HexGrid.formatCoords(coords);
-        this.tiles[coords].undraw();
-        delete this.tiles[coords];
     }
 
     asJSON() {
@@ -758,3 +736,50 @@ class GameBoard extends HexGrid {
 }
 
 export {GameBoard};
+
+//TODO: Remove everything below this line
+
+//window.board = new GameBoard(undefined, "gameboard");
+
+window.GameBoard = GameBoard;
+
+window.randResource = function () {
+    var r = Math.random();
+    if (r < 0.166) {
+        return "desert";
+    } else if (r < 0.333) {
+        return "wheat";
+    } else if (r < 0.5) {
+        return "clay";
+    } else if (r < 0.666) {
+        return "rocks";
+    } else if (r < 0.8333) {
+        return "sheep";
+    } else {
+        return "wood";
+    }
+};
+
+ window.populate = function (width, height) {
+     for (var x = 0; x < width; x++) {
+         for (var y = 0; y < height; y++) {
+             window.board.addTile([x, y], {resourcetype: randResource(), number: Math.ceil(Math.random() * 12)});
+         }
+     }
+ };
+
+ window.doMagic = function(){
+     window.board = new GameBoard(undefined, "gameboard");
+     window.populate(6,6);
+     window.board.draw();
+     window.board.get("0,0,EDGE_SW").port = {
+         cost: 3,
+         reward: 1
+     };
+     window.board.get("0,0,EDGE_W").port = {
+         resource: 'rocks',
+         cost: 3,
+         reward: 2
+     };
+     window.board.draw();
+ };

@@ -19,29 +19,11 @@
             integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ"
             crossorigin="anonymous"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/hammerjs/2.0.8/hammer.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
     <script type="text/javascript">
-        // This global variable is used to draw the game board.
-        // It is in this HTML file because it needs to be generated dynamically using templates.
-        // This is because, if this entire app is hosted at something like /game, all of these static URLs will change.
-
-        var resourceUrls = {
-            'wheat': "{{ url_for('static', filename='images/hex_wheat.png') }}",
-            'clay': "{{ url_for('static', filename='images/hex_clay.png') }}",
-            'rocks': "{{ url_for('static', filename='images/hex_rocks.png') }}",
-            'sheep': "{{ url_for('static', filename='images/hex_sheep.png') }}",
-            'wood': "{{ url_for('static', filename='images/hex_wood.png') }}",
-            'desert': "{{ url_for('static', filename='images/hex_desert.png') }}"
-        };
-
-        var playerIcons = {
-            '0': {
-                'city': '{{ url_for('gameplay.get_icon', icon='city', color='E02020') }}',
-                'settlement': '{{ url_for('gameplay.get_icon', icon='settlement', color='E02020') }}',
-                'road': '{{ url_for('gameplay.get_icon', icon='road', color='E02020') }}',
-            }
-        }
-
+        {% include 'headerjs.js' %}
     </script>
     <!-- I do not have much of a handle on how JS modules work. I don't think I need hexgrid.js here... -->
     <!--script type="module" src="{{ url_for('static', filename='js/hexgrid.js') }}"></script-->
@@ -122,42 +104,50 @@
                                             </div>
 
                                             <div class="form-row">
-                                                <label class="col-10 col-form-label" for="automatic-number-wheat">Wheat</label>
-                                                <input type="number" class="form-control col-2" id="automatic-number-wheat">
+                                                <label class="col-9 col-form-label" for="automatic-number-wheat">Wheat</label>
+                                                <input type="number" class="form-control col-3 resource-number-input"
+                                                       id="automatic-number-wheat" data-resource="wheat">
                                             </div>
                                             <div class="form-row">
-                                                <label class="col-10 col-form-label" for="automatic-number-sheep">Sheep</label>
-                                                <input type="number" class="form-control col-2" id="automatic-number-sheep">
+                                                <label class="col-9 col-form-label" for="automatic-number-sheep">Sheep</label>
+                                                <input type="number" class="form-control col-3 resource-number-input"
+                                                       id="automatic-number-sheep" data-resource="sheep">
                                             </div>
                                             <div class="form-row">
-                                                <label class="col-10 col-form-label" for="automatic-number-rocks">Rock</label>
-                                                <input type="number" class="form-control col-2" id="automatic-number-rocks">
+                                                <label class="col-9 col-form-label" for="automatic-number-rocks">Rock</label>
+                                                <input type="number" class="form-control col-3 resource-number-input"
+                                                       id="automatic-number-rocks" data-resource="rocks">
                                             </div>
                                             <div class="form-row">
-                                                <label class="col-10 col-form-label" for="automatic-number-wood">Wood</label>
-                                                <input type="number" class="form-control col-2" id="automatic-number-wood">
+                                                <label class="col-9 col-form-label" for="automatic-number-wood">Wood</label>
+                                                <input type="number" class="form-control col-3 resource-number-input"
+                                                       id="automatic-number-wood" data-resource="wood">
                                             </div>
                                             <div class="form-row">
-                                                <label class="col-10 col-form-label" for="automatic-number-clay">Clay</label>
-                                                <input type="number" class="form-control col-2" id="automatic-number-clay">
+                                                <label class="col-9 col-form-label" for="automatic-number-clay">Clay</label>
+                                                <input type="number" class="form-control col-3 resource-number-input"
+                                                       id="automatic-number-clay" data-resource="clay">
                                             </div>
                                             <div class="form-row">
-                                                <label class="col-10 col-form-label" for="automatic-number-desert">Desert</label>
-                                                <input type="number" class="form-control col-2" id="automatic-number-desert">
+                                                <label class="col-9 col-form-label" for="automatic-number-desert">Desert</label>
+                                                <input type="number" class="form-control col-3 resource-number-input"
+                                                       id="automatic-number-desert" data-resource="desert">
                                             </div>
                                             <div class="form-row">
-                                                <label class="col-10 col-form-label" for="automatic-number-gold">Gold</label>
-                                                <input type="number" class="form-control col-2" id="automatic-number-gold">
+                                                <label class="col-9 col-form-label" for="automatic-number-gold">Gold</label>
+                                                <input type="number" class="form-control col-3 resource-number-input"
+                                                       id="automatic-number-gold" data-resource="gold">
                                             </div>
                                             <div class="form-row">
-                                                <label class="col-10 col-form-label" for="automatic-number-ocean">Ocean</label>
-                                                <input type="number" class="form-control col-2" id="automatic-number-ocean">
+                                                <label class="col-9 col-form-label" for="automatic-number-ocean">Ocean</label>
+                                                <input type="number" class="form-control col-3 resource-number-input"
+                                                       id="automatic-number-ocean" data-resource="ocean">
                                             </div>
 
-                                            <div class="invalid-feedback" id="automatic-too-many-resources">
+                                            <div class="text-danger hidden" id="automatic-too-many-resources">
                                                 You have chosen too many tiles for the selected board size.
                                             </div>
-                                            <div class="invalid-feedback" id="automatic-too-few-resources">
+                                            <div class="text-danger hidden" id="automatic-too-few-resources">
                                                 You have chosen too few tiles for the selected board size.
                                             </div>
 

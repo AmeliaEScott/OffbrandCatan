@@ -82,7 +82,7 @@ const board = new GameBoard(undefined, "gameboard");
 /**
  * Holds the information about how the board should be auto-generated when the user clicks that button.
  * If they choose to manually lay out tiles, then this doesn't really apply.
- * @type {{boardSize: string, resourceCounts: {}, coordinates: Set, preventAdjacent: boolean, minCornerScore: number, maxCornerScore: number}}
+ * @type {{boardSize: *, resourceCounts: {}, coordinates: *, preventAdjacent: *, minCornerScore: *, maxCornerScore: *}}
  */
 const automaticOptions = {
     boardSize: 'standard',
@@ -92,9 +92,9 @@ const automaticOptions = {
     // If these constraints are any stricter, there is no possible solution, and it will run for a very
     // long time trying to find one.
     // A corner score is the sum of the score of each number on the three adjacent tiles, where the "score" is the
-    // number of dots on the catan piece, representing the probability of that number being rolled.
+    // number of dots on the Catan piece, representing the probability of that number being rolled.
     // These constraints only apply to corners with three adjacent tiles that aren't deserts or oceans.
-    // These constraints are intended to make sure the numbers are evenly distrubuted, with no clumps of excessively
+    // These constraints are intended to make sure the numbers are evenly distributed, with no clumps of excessively
     // high or low probability.
     minCornerScore: 8,
     maxCornerScore: 11
@@ -122,10 +122,27 @@ $(document).ready(function(){
     // Button to lay out tiles
     $("#automatic-submit-button").click(function(event){
         event.preventDefault();
+
+        var targetsum = automaticOptions.coordinates.size;
+        var actualsum = 0;
+        $(".resource-number-input").each(function(){
+            actualsum += parseInt($(this).val());
+        });
+        if(actualsum > targetsum){
+            toastr.error("You have too many resources for the specified board size.");
+            return;
+        }else if(actualsum < targetsum){
+            toastr.error("You have too few resources for the specified board size.");
+            return;
+        }
+
+        board.clear();
         var resourcesLeft = Object.assign({}, automaticOptions.resourceCounts);
         var coordsLeft = new Set(automaticOptions.coordinates);
         var coords = coordsLeft.entries().next().value[0];
-        fillBoard(resourcesLeft, coordsLeft, coords);
+        if(!fillBoard(resourcesLeft, coordsLeft, coords)){
+            toastr.error("Could not generate board with the specified resources.");
+        }
         board.draw();
     });
 
@@ -145,10 +162,17 @@ $(document).ready(function(){
                 tile.number = undefined;
             }
         }
-        console.log(fillNumbers(getNumbers(), startCoords));
+        if(!fillNumbers(getNumbers(), startCoords)){
+            toastr.error("Could not fill in the numbers on this board. Try making the board bigger.");
+        }
         board.draw();
 
-    })
+    });
+
+    $(".resource-number-input").change(function(){
+        var currentResource = $(this).attr("data-resource");
+        automaticOptions.resourceCounts[currentResource] = parseInt($(this).val());
+    });
 });
 
 /**
@@ -176,15 +200,22 @@ function shuffle(array) {
   return array;
 }
 
+const recursionTimeLimit = 10000;
+
 /**
  * Randomly fills the board with resources using a random DFS
  * @param resourcesLeft An Object with an entry for each resource type, and a count of how many resources of that
  *          type are left to be generated.
  * @param coordsLeft A Set of all of the coordinates left to be generated
  * @param coords The coordinates at which to start generating the board
+ * @param start The time at which this function started, in milliseconds
  * @returns {boolean} True if it was possible to generate this board, False otherwise.
  */
-function fillBoard(resourcesLeft, coordsLeft, coords){
+function fillBoard(resourcesLeft, coordsLeft, coords, start=Date.now()){
+
+    if(Date.now() - start > recursionTimeLimit){
+        return false;
+    }
 
     // Which resources should I try in this step of the recursion?
     var resourcesToTry = [];
@@ -226,7 +257,7 @@ function fillBoard(resourcesLeft, coordsLeft, coords){
         // which is why it breaks as soon as it finds one.
         for(adjacentCoords of coordsLeft) {
             if (!board.get(adjacentCoords)) {
-                if (!fillBoard(resourcesLeft, coordsLeft, adjacentCoords)) {
+                if (!fillBoard(resourcesLeft, coordsLeft, adjacentCoords, start)) {
                     success = false;
                 }
                 break;
@@ -308,9 +339,14 @@ function cornerScore(coords){
  * Note: Make sure that the tiles of the board are filled in first.
  * @param numbersLeft {{}} How many of each number is left to place on the board
  * @param coords Coordinates to start at
+ * @param start Time at which this recursion started, in milliseconds
  * @returns {boolean} True iff the given numbers were able to be placed such that the score constraints are met
  */
-function fillNumbers(numbersLeft, coords){
+function fillNumbers(numbersLeft, coords, start=Date.now()){
+
+    if(Date.now() - start > recursionTimeLimit){
+        return false;
+    }
     // This function is very similar to fillBoard. In fact, it's so similar, that I probably could have gotten
     // away with a lot less code duplication... But it's late and I want to sleep and it works.
     // Note to future self: If you're trying to figure out how this function works, look at the comments in fillBoard.
@@ -360,7 +396,7 @@ function fillNumbers(numbersLeft, coords){
             var tile = board.get(adjacentCoords);
             if(GameBoard.isTile(adjacentCoords) && !tile.number
                 && tile.resourcetype != 'desert' && tile.resourcetype != 'ocean'){
-                if(!fillNumbers(numbersLeft, adjacentCoords)) {
+                if(!fillNumbers(numbersLeft, adjacentCoords, start)) {
                     success = false;
                 }
                 break;
@@ -388,7 +424,8 @@ window.GameBoard = GameBoard;
 
 window.allCornerScores = function(){
     for(var coords in board.tiles){
-        if(GameBoard.isCorner(coords) && board.getTileNeighbors(coords, true).length > 2){
+        if(board.tiles.hasOwnProperty(coords) && GameBoard.isCorner(coords)
+            && board.getTileNeighbors(coords, true).length > 2){
             console.log(`${GameBoard.formatCoords(coords)}: ${cornerScore(coords)}`);
         }
     }

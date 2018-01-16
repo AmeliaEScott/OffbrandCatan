@@ -42,6 +42,10 @@
     display: none;
 }
 
+.seethrough {
+    opacity: 0;
+}
+
 /*
 This class adds the "disabled" overlay to things you don't have the resources to build
 */

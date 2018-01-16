@@ -21,31 +21,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/hammerjs/2.0.8/hammer.min.js"></script>
 
     <script type="text/javascript">
-        // This global variable is used to draw the game board.
-        // It is in this HTML file because it needs to be generated dynamically using templates.
-        // This is because, if this entire app is hosted at something like /game, all of these static URLs will change.
-
-        var resourceUrls = {
-            'wheat': "{{ url_for('static', filename='images/hex_wheat.png') }}",
-            'clay': "{{ url_for('static', filename='images/hex_clay.png') }}",
-            'rocks': "{{ url_for('static', filename='images/hex_rocks.png') }}",
-            'sheep': "{{ url_for('static', filename='images/hex_sheep.png') }}",
-            'wood': "{{ url_for('static', filename='images/hex_wood.png') }}",
-            'desert': "{{ url_for('static', filename='images/hex_desert.png') }}"
-        };
-
-        var playerIcons = {
-        {% for player, color in playercolors.items() %}
-            {{ player }}: {
-                'city': '{{ url_for('gameplay.get_icon', icon='city', color=color) }}',
-                'settlement': '{{ url_for('gameplay.get_icon', icon='settlement', color=color) }}',
-                'road': '{{ url_for('gameplay.get_icon', icon='road', color=color) }}',
-            },
-        {% endfor %}
-        };
-
-        var me = {{ me }};
-
+        {% include 'headerjs.js' %}
     </script>
     <!-- I do not have much of a handle on how JS modules work. I don't think I need hexgrid.js here... -->
     <!--script type="module" src="{{ url_for('static', filename='js/hexgrid.js') }}"></script-->

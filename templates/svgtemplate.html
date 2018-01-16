@@ -18,7 +18,11 @@
     <!-- This serves as a template for creating new Hexagons to add to the game board. -->
     <g id="hex-template">
         <image class="hex-tile hex-click" x="0" y="0" width="1" height="1.155" href="[[[href]]]"
-               xlink:href="[[[href]]]"></image>
+               xlink:href="[[[href]]]" visibility="[[[tilevisibility]]]"></image>
+        <!-- TODO: Get a better thief picture -->
+        <image height="0.3" width="0.3" href="https://via.placeholder.com/300x300?text=thief"
+               xlink:href="https://via.placeholder.com/300x300?text=thief" visibility="[[[thiefvisibility]]]"
+               x="0.2" y="0.2"></image>
         <circle cx="0.5" cy="0.577" r="0.1" fill="#D0D0D0" visibility="[[[numbervisibility]]]"
                 stroke-width="0.01" stroke="#000000"></circle>
         <!-- The exact center of the hex in the Y direction is 0.577, but the text  didn't
@@ -26,15 +30,25 @@
         <text text-anchor="middle" font-family="Serif" alignment-baseline="middle"
               visibility="[[[numbervisibility]]]" font-size="0.1" x="0.5" y="0.585">[[[number]]]</text>
         <path d="{{ hex_clip_path }}" transform="scale(1 1.155)" class="svg-click hex-click" fill="#000000"
-              fill-opacity="0.2" stroke-width="0.03" stroke="#ff0000" visibility="hidden"></path>
+              fill-opacity="0.2" stroke-width="0.03" stroke="#ff0000" visibility="hidden" stroke-alignment="inner"></path>
     </g>
 
     <!-- Template for edges (Roads and ports) -->
     <g id="edge-template">
-        <image x="0.25" y="0.2885" height="0.577" width="0.5" href="[[[href]]]" class="unclickable"
-               xlink:href="[[[href]]]" visibility="[[[visibility]]]" transform="[[[edgetransform]]]"></image>
-        <rect x="0.35" y="0.527" height="0.1" width="0.3" transform="[[[edgetransform]]]" visibility="hidden"
-              fill="#000000" fill-opacity="0.2" stroke="#ff0000" stroke-width="0.03" class="svg-click edge-click"></rect>
+        <g transform="[[[edgetransform]]]">
+            <g visibility="[[[portvisibility]]]" transform="[[[porttransform]]]">
+                <image href="[[[porthref]]]" xlink:href="[[[porthref]]]" width="0.2" height="0.297" x="0.4" y="0.15"
+                       visibility="[[[resourcevisibility]]]"></image>
+                <text font-family="Serif" text-anchor="middle" font-size="0.3" x="0.5" y="0.45"
+                      visibility="[[[questionmarkvisibility]]]">?</text>
+                <text font-family="Serif" text-anchor="middle" font-size="0.08" x="0.5" y="0.53">[[[cost]]]:[[[reward]]]</text>
+            </g>
+            <image x="0.25" y="0.2885" height="0.577" width="0.5" href="[[[href]]]" class="unclickable"
+                   xlink:href="[[[href]]]" visibility="[[[visibility]]]"></image>
+            <rect x="0.35" y="0.527" height="0.1" width="0.3" visibility="hidden"
+                  fill="#000000" fill-opacity="0.2" stroke="#ff0000" stroke-width="0.03" class="svg-click edge-click"></rect>
+        </g>
+
     </g>
 
     <!-- Template for corners (Cities and settlements) -->

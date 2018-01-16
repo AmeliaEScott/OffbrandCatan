@@ -77,6 +77,23 @@ class HexGrid {
         return this.tiles[coords] !== undefined;
     }
 
+    remove(coords){
+        coords = HexGrid.formatCoords(coords);
+        delete this.tiles[coords];
+        if(HexGrid.isTile(coords)){
+            for(var adjacentCorner of this.getCornerNeighbors(coords, true)){
+                if(this.getTileNeighbors(adjacentCorner, true).length === 0){
+                    this.remove(adjacentCorner);
+                }
+            }
+            for(var adjacentEdge of this.getEdgeNeighbors(coords, true)){
+                if(this.getTileNeighbors(adjacentEdge, true).length === 0){
+                    this.remove(adjacentEdge);
+                }
+            }
+        }
+    }
+
     /**
      * Finds the tiles neighboring the specified location, and returns a list of their coordinates (not the actual data).
      * Tiles have 6 tile neighbors. Corners have 3. Edges have 2.
