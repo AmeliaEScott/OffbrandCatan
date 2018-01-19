@@ -46,6 +46,13 @@
     opacity: 0;
 }
 
+.manual-selected {
+    border-width: 5px;
+    border-color: #E03010;
+    border-style: solid;
+    border-radius: 5%;
+}
+
 /*
 This class adds the "disabled" overlay to things you don't have the resources to build
 */

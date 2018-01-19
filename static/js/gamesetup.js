@@ -28,16 +28,51 @@ const resourceCounts = {
         ocean: 0
     },
     test: { //TODO: Remove test
-        wheat: 4,
+        wheat: 2,
         sheep: 0,
         rocks: 0,
         wood: 0,
         clay: 0,
         desert: 0,
         gold: 0,
-        ocean: 0
+        ocean: 2
     }
     //TODO: Seafarers numbers
+};
+
+/**
+ * Stores a list of how many ports of what kind should be in each map type
+ * @type {{standard: *[], standard56: *[], test: *[]}}
+ */
+const defaultPorts = {
+    standard: [
+        {cost: 3, reward: 1},
+        {cost: 3, reward: 1},
+        {cost: 3, reward: 1},
+        {cost: 3, reward: 1},
+        {resource: 'wheat', cost: 2, reward: 1},
+        {resource: 'sheep', cost: 2, reward: 1},
+        {resource: 'rocks', cost: 2, reward: 1},
+        {resource: 'wood', cost: 2, reward: 1},
+        {resource: 'clay', cost: 2, reward: 1}
+    ],
+    standard56: [
+        {cost: 3, reward: 1},
+        {cost: 3, reward: 1},
+        {cost: 3, reward: 1},
+        {cost: 3, reward: 1},
+        {cost: 3, reward: 1},
+        {resource: 'wheat', cost: 2, reward: 1},
+        {resource: 'sheep', cost: 2, reward: 1},
+        {resource: 'sheep', cost: 2, reward: 1},
+        {resource: 'rocks', cost: 2, reward: 1},
+        {resource: 'wood', cost: 2, reward: 1},
+        {resource: 'clay', cost: 2, reward: 1}
+    ],
+    test: [
+        {cost: 4, reward: 1},
+        {resource: 'sheep', cost: 5, reward: 4}
+    ]
 };
 
 /**
@@ -97,7 +132,13 @@ const automaticOptions = {
     // These constraints are intended to make sure the numbers are evenly distributed, with no clumps of excessively
     // high or low probability.
     minCornerScore: 8,
-    maxCornerScore: 11
+    maxCornerScore: 11,
+    ports: Object.assign([], defaultPorts.standard)
+};
+
+const manualSelected = {
+    'type': null,
+    'data': null
 };
 
 $(document).ready(function(){
@@ -112,8 +153,9 @@ $(document).ready(function(){
             }
         }
         automaticOptions.coordinates = new Set(coordinateSets[boardsize]);
+        automaticOptions.ports = JSON.parse(JSON.stringify(defaultPorts[boardsize]));
     }).change();
-    //TODO: Listen for resource count updates
+
     // Listen for the checkbox being checked
     $("#automatic-prevent-adjacent").change(function(){
         automaticOptions.preventAdjacent = $(this).prop("checked");
@@ -126,7 +168,12 @@ $(document).ready(function(){
         var targetsum = automaticOptions.coordinates.size;
         var actualsum = 0;
         $(".resource-number-input").each(function(){
-            actualsum += parseInt($(this).val());
+            var val = parseInt($(this).val());
+            if(!(val > 0)){
+                val = 0;
+                $(this).val(0);
+            }
+            actualsum += parseInt(val);
         });
         if(actualsum > targetsum){
             toastr.error("You have too many resources for the specified board size.");
@@ -169,10 +216,81 @@ $(document).ready(function(){
 
     });
 
+    $("#automatic-fill-ports").click(function(event){
+        event.preventDefault();
+        fillPorts();
+        board.draw();
+    });
+
     $(".resource-number-input").change(function(){
         var currentResource = $(this).attr("data-resource");
         automaticOptions.resourceCounts[currentResource] = parseInt($(this).val());
     });
+
+    // TODO: Manual board layout
+    // $("#manual-card").on("hide.bs.collapse", function(event){
+    //     console.log("Collapsed!");
+    //     $(".manual-selectable").removeClass("manual-selected");
+    //     manualSelected.type = null;
+    //     manualSelected.data = null;
+    //     for(var coords of board.getTiles()){
+    //         if(!board.get(coords).resourcetype){
+    //             board.remove(coords);
+    //         }
+    //     }
+    //     board.draw();
+    // }).on("show.bs.collapse", function(){
+    //     console.log("Shown!");
+    //     var tilesToAdd = new Set();
+    //     for(var coords of board.getTiles()){
+    //         for(var neighborCoords of board.getTileNeighbors(coords)){
+    //             if(!board.contains(neighborCoords)){
+    //                 tilesToAdd.add(neighborCoords);
+    //             }
+    //         }
+    //     }
+    //     if(tilesToAdd.size === 0){
+    //         tilesToAdd.add("0,0");
+    //     }
+    //     for(coords of tilesToAdd){
+    //         board.addTile(coords, {}, false);
+    //         board.get(coords).draw();
+    //         board.get(coords).enableClickHighlight();
+    //     }
+    //     board.draw();
+    // });
+    //
+    // $(".manual-selectable").click(function(){
+    //     $(".manual-selectable").removeClass("manual-selected");
+    //     $(this).addClass("manual-selected");
+    //     var selection = $(this).attr("data-select").split("-");
+    //     if(selection[0] === 'hex'){
+    //         manualSelected.type = 'hex';
+    //         manualSelected.data = selection[1];
+    //     }else if(selection[0] === 'port'){
+    //         manualSelected.type = 'port';
+    //         if(selection[1] === 'any'){
+    //             manualSelected.data = {
+    //                 cost: 3,
+    //                 reward: 1
+    //             }
+    //         }else{
+    //             manualSelected.data = {
+    //                 resource: selection[1],
+    //                 cost: 2,
+    //                 reward: 1
+    //             }
+    //         }
+    //     }
+    // });
+    //
+    // board.onClick = function(tile){
+    //     if(GameBoard.isTile(tile.coords) && manualSelected.type === 'hex'){
+    //         board.addTile(tile.coords, {resourcetype: manualSelected.data});
+    //         tile.draw();
+    //     }
+    // }
+
 });
 
 /**
@@ -243,7 +361,8 @@ function fillBoard(resourcesLeft, coordsLeft, coords, start=Date.now()){
         }
         // If there's already a neighboring resource of the same type, then the current
         // resource is a bust. Try the next one.
-        if(adjacentResource && automaticOptions.preventAdjacent){
+        // One exception: Ocean is expected to be clumped together
+        if(adjacentResource && automaticOptions.preventAdjacent && resource !== 'ocean'){
             continue;
         }
 
@@ -393,13 +512,15 @@ function fillNumbers(numbersLeft, coords, start=Date.now()){
         numbersLeft[number]--;
         var success = true;
         for(var adjacentCoords in board.tiles){
-            var tile = board.get(adjacentCoords);
-            if(GameBoard.isTile(adjacentCoords) && !tile.number
-                && tile.resourcetype != 'desert' && tile.resourcetype != 'ocean'){
-                if(!fillNumbers(numbersLeft, adjacentCoords, start)) {
-                    success = false;
+            if(board.tiles.hasOwnProperty(adjacentCoords)) {
+                var tile = board.get(adjacentCoords);
+                if (GameBoard.isTile(adjacentCoords) && !tile.number
+                    && tile.resourcetype != 'desert' && tile.resourcetype != 'ocean') {
+                    if (!fillNumbers(numbersLeft, adjacentCoords, start)) {
+                        success = false;
+                    }
+                    break;
                 }
-                break;
             }
         }
         if(success){
@@ -409,6 +530,56 @@ function fillNumbers(numbersLeft, coords, start=Date.now()){
         numbersLeft[number]++;
     }
     return false;
+}
+
+function getOuterEdges(){
+    var result = [];
+    for(var coords of board.getEdges()){
+        var neighbors = board.getTileNeighbors(coords, true);
+        if(neighbors.length === 1){
+            if(board.get(neighbors[0]).resourcetype !== 'ocean'){
+                result.push(coords);
+            }
+        }else{
+            var n1 = board.get(neighbors[0]);
+            var n2 = board.get(neighbors[1]);
+            if((n1.resourcetype === 'ocean' && n2.resourcetype !== 'ocean') ||
+                (n1.resourcetype !== 'ocean' && n2.resourcetype === 'ocean')){
+                result.push(coords);
+            }
+        }
+    }
+    return result;
+}
+
+function fillPorts(){
+    var edges = getOuterEdges();
+    shuffle(edges);
+    shuffle(automaticOptions.ports);
+    var edgeIndex = 0;
+    var portIndex = 0;
+    for(var neighbor of getOuterEdges()){
+        board.get(neighbor).port = null;
+    }
+    while(portIndex < automaticOptions.ports.length){
+        var coords = edges[edgeIndex];
+        var neighborCoordinates = board.getEdgeNeighbors(coords, true);
+        var hasNeighbor = false;
+        for(var neighborCoordinate of neighborCoordinates){
+            if(board.get(neighborCoordinate).port){
+                hasNeighbor = true;
+                break;
+            }
+        }
+        if(hasNeighbor){
+            edgeIndex++;
+        }else{
+            board.get(coords).port = automaticOptions.ports[portIndex];
+            edgeIndex++;
+            portIndex++;
+        }
+    }
+    return portIndex === automaticOptions.ports.length;
 }
 
 //TODO: Remove everything below this line. It is for debugging only.
@@ -421,6 +592,10 @@ window.getNumbers = getNumbers;
 window.fillNumbers = fillNumbers;
 window.cornerScore = cornerScore;
 window.GameBoard = GameBoard;
+window.getOuterEdges = getOuterEdges;
+window.defaultPorts = defaultPorts;
+window.fillPorts = fillPorts;
+window.manualSelected = manualSelected;
 
 window.allCornerScores = function(){
     for(var coords in board.tiles){

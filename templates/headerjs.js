@@ -8,7 +8,9 @@ var resourceUrls = {
     'rocks': "{{ url_for('static', filename='images/hex_rocks.png') }}",
     'sheep': "{{ url_for('static', filename='images/hex_sheep.png') }}",
     'wood': "{{ url_for('static', filename='images/hex_wood.png') }}",
-    'desert': "{{ url_for('static', filename='images/hex_desert.png') }}"
+    'desert': "{{ url_for('static', filename='images/hex_desert.png') }}",
+    'ocean': "{{ url_for('static', filename='images/hex_ocean.png') }}",
+    'gold': "{{ url_for('static', filename='images/hex_gold.png') }}",
 };
 
 var resourceCardUrls = {
@@ -17,7 +19,6 @@ var resourceCardUrls = {
     'rocks': "{{ url_for('static', filename='images/resource_rocks.png') }}",
     'sheep': "{{ url_for('static', filename='images/resource_sheep.png') }}",
     'wood': "{{ url_for('static', filename='images/resource_wood.png') }}",
-    'desert': "{{ url_for('static', filename='images/resource_desert.png') }}"
 };
 
 {% if playercolors %}

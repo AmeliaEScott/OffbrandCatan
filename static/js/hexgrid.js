@@ -271,6 +271,39 @@ class HexGrid {
     }
 
     /**
+     * Iterates over the coordinates of every tile in this grid
+     */
+    * getTiles(){
+        for(var coords in this.tiles){
+            if(this.tiles.hasOwnProperty(coords) && GameBoard.isTile(coords)){
+                yield GameBoard.getCanonicalCoords(coords);
+            }
+        }
+    }
+
+    /**
+     * Iterates over the coordinates of every edge in this grid
+     */
+    * getEdges(){
+        for(var coords in this.tiles){
+            if(this.tiles.hasOwnProperty(coords) && GameBoard.isEdge(coords)){
+                yield GameBoard.getCanonicalCoords(coords);
+            }
+        }
+    }
+
+    /**
+     * Iterates over the coordinates of every corner in this grid
+     */
+    * getCorners(){
+        for(var coords in this.tiles){
+            if(this.tiles.hasOwnProperty(coords) && GameBoard.isCorner(coords)){
+                yield GameBoard.getCanonicalCoords(coords);
+            }
+        }
+    }
+
+    /**
      * Returns true if these coords represent a tile (not an edge or corner)
      * @param coords Any valid coordinates
      * @returns {boolean} True iff these coordinates represent a tile
@@ -287,7 +320,7 @@ class HexGrid {
      */
     static isEdge(coords){
         coords = HexGrid.getCanonicalCoords(coords);
-        return Direction.edges.indexOf(coords.direction) > 0;
+        return Direction.edges.indexOf(coords.direction) >= 0;
     }
 
     /**
@@ -297,7 +330,7 @@ class HexGrid {
      */
     static isCorner(coords){
         coords = HexGrid.getCanonicalCoords(coords);
-        return Direction.corners.indexOf(coords.direction) > 0;
+        return Direction.corners.indexOf(coords.direction) >= 0;
     }
 
     /**

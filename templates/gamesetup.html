@@ -79,11 +79,11 @@
                 <div class="col-9 col-lg-3 sidebar-offcanvas" id="sidebar">
                     <div id="sidebar-accordion" role="tablist">
                         <div class="card">
-                            <div class="card-header" role="tab" id="resources-card-header"
-                                 data-toggle="collapse" data-target="#resources-card">
+                            <div class="card-header" role="tab" id="automatic-card-header"
+                                 data-toggle="collapse" data-target="#automatic-card">
                                 <h5> Automatic </h5>
                             </div>
-                            <div id="resources-card" class="collapse show" role="tabpanel" data-parent="#sidebar-accordion">
+                            <div id="automatic-card" class="collapse show" role="tabpanel" data-parent="#sidebar-accordion">
                                 <div class="card-body">
                                     <div class="row">
                                         <form>
@@ -106,37 +106,37 @@
                                             <div class="form-row">
                                                 <label class="col-9 col-form-label" for="automatic-number-wheat">Wheat</label>
                                                 <input type="number" class="form-control col-3 resource-number-input"
-                                                       id="automatic-number-wheat" data-resource="wheat">
+                                                       id="automatic-number-wheat" data-resource="wheat" min="0">
                                             </div>
                                             <div class="form-row">
                                                 <label class="col-9 col-form-label" for="automatic-number-sheep">Sheep</label>
                                                 <input type="number" class="form-control col-3 resource-number-input"
-                                                       id="automatic-number-sheep" data-resource="sheep">
+                                                       id="automatic-number-sheep" data-resource="sheep" min="0">
                                             </div>
                                             <div class="form-row">
                                                 <label class="col-9 col-form-label" for="automatic-number-rocks">Rock</label>
                                                 <input type="number" class="form-control col-3 resource-number-input"
-                                                       id="automatic-number-rocks" data-resource="rocks">
+                                                       id="automatic-number-rocks" data-resource="rocks" min="0">
                                             </div>
                                             <div class="form-row">
                                                 <label class="col-9 col-form-label" for="automatic-number-wood">Wood</label>
                                                 <input type="number" class="form-control col-3 resource-number-input"
-                                                       id="automatic-number-wood" data-resource="wood">
+                                                       id="automatic-number-wood" data-resource="wood" min="0">
                                             </div>
                                             <div class="form-row">
                                                 <label class="col-9 col-form-label" for="automatic-number-clay">Clay</label>
                                                 <input type="number" class="form-control col-3 resource-number-input"
-                                                       id="automatic-number-clay" data-resource="clay">
+                                                       id="automatic-number-clay" data-resource="clay" min="0">
                                             </div>
                                             <div class="form-row">
                                                 <label class="col-9 col-form-label" for="automatic-number-desert">Desert</label>
                                                 <input type="number" class="form-control col-3 resource-number-input"
-                                                       id="automatic-number-desert" data-resource="desert">
+                                                       id="automatic-number-desert" data-resource="desert" min="0">
                                             </div>
                                             <div class="form-row">
                                                 <label class="col-9 col-form-label" for="automatic-number-gold">Gold</label>
                                                 <input type="number" class="form-control col-3 resource-number-input"
-                                                       id="automatic-number-gold" data-resource="gold">
+                                                       id="automatic-number-gold" data-resource="gold" min="0">
                                             </div>
                                             <div class="form-row">
                                                 <label class="col-9 col-form-label" for="automatic-number-ocean">Ocean</label>
@@ -151,8 +151,10 @@
                                                 You have chosen too few tiles for the selected board size.
                                             </div>
 
-                                            <button class="btn btn-info" id="automatic-submit-button">Generate Board</button>
-                                            <button class="btn btn-info" id="automatic-fill-numbers">Fill Numbers</button>
+                                            <button class="btn btn-info btn-block" id="automatic-submit-button">Generate Board</button>
+                                            <button class="btn btn-info btn-block" id="automatic-fill-numbers">Fill Numbers</button>
+                                            <button class="btn btn-info btn-block" id="automatic-fill-ports">Place Ports</button>
+
                                             <div class="text-primary hidden" id="automatic-fill-numbers-wait">
                                                 This could take up to 20 seconds. Please be patient...
                                             </div>
@@ -163,16 +165,89 @@
                             </div>
                         </div>
                         <div class="card">
-                            <div class="card-header" role="tab" id="building-card-header"
-                                 data-toggle="collapse" data-target="#building-card">
+                            <div class="card-header" role="tab" id="manual-card-header"
+                                 data-toggle="collapse" data-target="#manual-card">
                                 <h5> Manual </h5>
                             </div>
-                            <div id="building-card" class="collapse" role="tabpanel"
+                            <div id="manual-card" class="collapse" role="tabpanel"
                                  data-parent="#sidebar-accordion">
                                 <div class="card-body">
-                                    <div class="row">
-                                        <h1>PLACEHOLDER</h1>
+
+                                    <p>Manual board layout will be added eventually...</p>
+                                    <!-- TODO: Manual board layout -->
+                                    <!-- div class="row">
+                                        <div class="col-4">
+                                            <img class="img-fluid manual-selectable" data-select="hex-wheat"
+                                                 src="{{ url_for('static', filename='images/hex_wheat.png') }}">
+                                        </div>
+                                        <div class="col-4">
+                                            <img class="img-fluid manual-selectable" data-select="hex-sheep"
+                                                 src="{{ url_for('static', filename='images/hex_sheep.png') }}">
+                                        </div>
+                                        <div class="col-4">
+                                            <img class="img-fluid manual-selectable" data-select="hex-wood"
+                                                 src="{{ url_for('static', filename='images/hex_wood.png') }}">
+                                        </div>
+                                        <div class="col-4">
+                                            <img class="img-fluid manual-selectable" data-select="hex-rocks"
+                                                 src="{{ url_for('static', filename='images/hex_rocks.png') }}">
+                                        </div>
+                                        <div class="col-4">
+                                            <img class="img-fluid manual-selectable" data-select="hex-clay"
+                                                 src="{{ url_for('static', filename='images/hex_clay.png') }}">
+                                        </div>
+                                        <div class="col-4">
+                                            <img class="img-fluid manual-selectable" data-select="hex-gold"
+                                                 src="{{ url_for('static', filename='images/hex_gold.png') }}">
+                                        </div>
+                                        <div class="col-4">
+                                            <img class="img-fluid manual-selectable" data-select="hex-ocean"
+                                                 src="{{ url_for('static', filename='images/hex_ocean.png') }}">
+                                        </div>
                                     </div>
+                                    <div class="row">
+                                        <div class="col-4">
+                                            <figure class="figure manual-selectable img-fluid" data-select="port-wheat">
+                                                <img src="{{ url_for('static', filename='images/resource_wheat.png') }}"
+                                                     class="figure-img img-fluid card-image">
+                                                <figcaption class="figure-caption text-center">2:1</figcaption>
+                                            </figure>
+                                        </div>
+                                        <div class="col-4">
+                                            <figure class="figure manual-selectable img-fluid" data-select="port-sheep">
+                                                <img src="{{ url_for('static', filename='images/resource_sheep.png') }}"
+                                                     class="figure-img img-fluid card-image">
+                                                <figcaption class="figure-caption text-center">2:1</figcaption>
+                                            </figure>
+                                        </div>
+                                        <div class="col-4">
+                                            <figure class="figure manual-selectable img-fluid" data-select="port-wood">
+                                                <img src="{{ url_for('static', filename='images/resource_wood.png') }}"
+                                                     class="figure-img img-fluid card-image">
+                                                <figcaption class="figure-caption text-center">2:1</figcaption>
+                                            </figure>
+                                        </div>
+                                        <div class="col-4">
+                                            <figure class="figure manual-selectable img-fluid" data-select="port-rocks">
+                                                <img src="{{ url_for('static', filename='images/resource_rocks.png') }}"
+                                                     class="figure-img img-fluid card-image">
+                                                <figcaption class="figure-caption text-center">2:1</figcaption>
+                                            </figure>
+                                        </div>
+                                        <div class="col-4">
+                                            <figure class="figure manual-selectable img-fluid" data-select="port-clay">
+                                                <img src="{{ url_for('static', filename='images/resource_clay.png') }}"
+                                                     class="figure-img img-fluid card-image">
+                                                <figcaption class="figure-caption text-center">2:1</figcaption>
+                                            </figure>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="manual-selectable text-center" data-select="port-any">
+                                                <h1>?</h1>
+                                                <p class="figure-caption">3:1</p>
+                                            </div>
+                                        </div>
+                                    </div -->
                                 </div>
                             </div>
                         </div>

@@ -29,8 +29,8 @@
         look quite right there, so I moved it down to y=0.585. -->
         <text text-anchor="middle" font-family="Serif" alignment-baseline="middle"
               visibility="[[[numbervisibility]]]" font-size="0.1" x="0.5" y="0.585">[[[number]]]</text>
-        <path d="{{ hex_clip_path }}" transform="scale(1 1.155)" class="svg-click hex-click" fill="#000000"
-              fill-opacity="0.2" stroke-width="0.03" stroke="#ff0000" visibility="hidden" stroke-alignment="inner"></path>
+        <path d="{{ hex_clip_path }}" transform="scale(1 1.155)" class="svg-click seethrough" fill="#000000"
+              fill-opacity="0.2" stroke-width="0.03" stroke="#ff0000" stroke-alignment="inner"></path>
     </g>
 
     <!-- Template for edges (Roads and ports) -->
@@ -45,8 +45,8 @@
             </g>
             <image x="0.25" y="0.2885" height="0.577" width="0.5" href="[[[href]]]" class="unclickable"
                    xlink:href="[[[href]]]" visibility="[[[visibility]]]"></image>
-            <rect x="0.35" y="0.527" height="0.1" width="0.3" visibility="hidden"
-                  fill="#000000" fill-opacity="0.2" stroke="#ff0000" stroke-width="0.03" class="svg-click edge-click"></rect>
+            <rect x="0.35" y="0.527" height="0.1" width="0.3" fill="#000000" fill-opacity="0.2" stroke="#ff0000"
+                  stroke-width="0.03" class="svg-click seethrough"></rect>
         </g>
 
     </g>
@@ -58,7 +58,7 @@
         <image x="0.35" y="0.427" height="0.3" width="0.3" visibility="[[[visibility]]]" class="unclickable"
                href="[[[href]]]" xlink:href="[[[href]]]" transform="[[[cornertransform]]]"></image>
         <circle cx="0.5" cy="0.577" r="0.1" fill-opacity="0.2" fill="#000000" stroke-width="0.03" stroke="#ff0000"
-                class="svg-click corner-click" transform="[[[cornertransform]]]" visibility="hidden"></circle>
+                class="svg-click seethrough" transform="[[[cornertransform]]]"></circle>
     </g>
 </defs>
 <rect x="-100" y="-100" width="200" height="200" fill="#D0D0D0"></rect>

@@ -74,39 +74,27 @@ class Shape {
         return $(element);
     }
 
+    attachClickListener(){
+        var self = this;
+        this.element.find(".svg-click").click(function(){
+            if(self.board.onClick && !self.board.ignoreClicks){
+                self.board.onClick(self)
+            }
+        })
+    }
+
     /**
-     * Enables this tile to be clicked, which means that click events will fire and the click overlay will show.
-     * @param visible {boolean} If true, then click outline is visible. If false, it is not.
+     * Shows the click overlay on this shape
      */
-    enableClick(visible=true){
-        var element = this.element.find(".svg-click");
-        element.attr("visibility", "visible");
-        if(!visible){
-            element.addClass("seethrough");
-        }else{
-            element.removeClass("seethrough");
-        }
+    enableClickHighlight(){
+        this.element.find(".svg-click").removeClass("seethrough");
     }
 
     /**
      * Disables this tile from being clicked, which means the click overlay will be hidden.
      */
-    disableClick(){
-        this.element.find(".svg-click").attr("visibility", "hidden");
-    }
-
-    /**
-     * Set a click event listener.
-     * @param func A function which takes two arguments: The first is the click event, the second is the
-     *      coordinates of this shape.
-     */
-    onClick(func){
-        var self = this;
-        this.element.find(".svg-click").click(function(event){
-            if(!self.board.ignoreClicks){
-                func(event, self.coords);
-            }
-        })
+    disableClickHighlight(){
+        this.element.find(".svg-click").addClass("seethrough");
     }
 
     /**
@@ -157,8 +145,9 @@ class Tile extends Shape {
         this.element.attr("transform", this.getTransform());
 
         this.board.svg.find("#board-tiles").prepend(this.element);
+        this.attachClickListener();
 
-        //TODO: Draw thief. Also, handle facedown-ness
+        //TODO: handle facedown-ness
     }
 
     asJSON(){
@@ -213,9 +202,7 @@ class Edge extends Shape {
         }else{
             porttransform = "";
         }
-        if(this.coords.x < 1 && this.coords.y < 1){
-            console.log(`Port transform at ${GameBoard.formatCoords(this.coords)}: ${porttransform}`);
-        }
+
         var porthref;
         var resourcevisibility;
         if(this.port && this.port.resource){
@@ -242,6 +229,7 @@ class Edge extends Shape {
         this.element.attr("transform", this.getTransform());
 
         this.board.svg.find("#board-edges").append(this.element);
+        this.attachClickListener();
     }
 
     asJSON(){
@@ -301,7 +289,7 @@ class Corner extends Shape {
         this.element.attr("transform", this.getTransform());
 
         this.board.svg.find("#board-corners").append(this.element);
-
+        this.attachClickListener();
     }
 
     asJSON(){
@@ -385,6 +373,8 @@ class GameBoard extends HexGrid {
             self.svg.height(height);
             self.svg.width(width);
         });
+
+        this.onClick = null;
     }
 
     /**
@@ -443,6 +433,7 @@ class GameBoard extends HexGrid {
             this.remove(coords);
         }
         this.set(coords, corner);
+
     }
 
     addEdge(coords, {player: player, port: port} = {player: null, port: null}) {
