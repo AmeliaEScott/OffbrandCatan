@@ -213,6 +213,34 @@ function shuffle(array) {
   return array;
 }
 
+/**
+ * Shuffles the keys of an object, where the values represent the weight of that key.
+ * Keys with a higher corresponding value are more likely to be first in the shuffled result.
+ * @param obj An object where every key is a non-negative number.
+ * @returns {Array} Array of the keys of obj, shuffled, with no repeats.
+ */
+function shuffleObject(obj){
+    var keys = [];
+    for(var key in obj){
+        if(obj.hasOwnProperty(key)) {
+            for (var i = 0; i < obj[key]; i++) {
+                keys.push(key);
+            }
+        }
+    }
+
+    // Shuffle the keys...
+    shuffle(keys);
+    // ...then remove the duplicates, while preserving order.
+    var result = [];
+    for(key of keys){
+        if(result.indexOf(key) < 0){
+            result.push(key);
+        }
+    }
+    return result;
+}
+
 const recursionTimeLimit = 10000;
 
 /**
@@ -231,20 +259,13 @@ function fillBoard(resourcesLeft, coordsLeft, coords, start=Date.now()){
     }
 
     // Which resources should I try in this step of the recursion?
-    var resourcesToTry = [];
-    var resource;
     coords = GameBoard.formatCoords(coords);
     // For future recursive steps, make sure they don't recurse back to this location.
     coordsLeft.delete(coords);
-    // Gather up every resource that has more than 0 tiles left to place
-    for(resource in resourcesLeft){
-        if(resourcesLeft.hasOwnProperty(resource) && resourcesLeft[resource] > 0){
-            resourcesToTry.push(resource);
-        }
-    }
-    shuffle(resourcesToTry);
+
+    var resourcesToTry = shuffleObject(resourcesLeft);
     // Try every single resource (among those that are left) in random order
-    for(resource of resourcesToTry){
+    for(var resource of resourcesToTry){
         var adjacentResource = false;
         // First, check to see if the current resource already has a neighboring tile of the same resource
         // (If that matters)
@@ -365,16 +386,10 @@ function fillNumbers(numbersLeft, coords, start=Date.now()){
     // away with a lot less code duplication... But it's late and I want to sleep and it works.
     // Note to future self: If you're trying to figure out how this function works, look at the comments in fillBoard.
     // Sorry I was too tired to write comments in this function.
-    var numbersToTry = [];
-    var number;
     coords = GameBoard.formatCoords(coords);
-    for(number in numbersLeft){
-        if(numbersLeft.hasOwnProperty(number) && numbersLeft[number] > 0){
-            numbersToTry.push(number);
-        }
-    }
-    shuffle(numbersToTry);
-    for(number of numbersToTry){
+
+    var numbersToTry = shuffleObject(numbersLeft);
+    for(var number of numbersToTry){
         number = parseInt(number);
         // The number has to be set before calculating the corner scores, because the corner scores depend
         // on the number on this tile.
@@ -491,6 +506,7 @@ window.getOuterEdges = getOuterEdges;
 window.defaultPorts = defaultPorts;
 window.fillPorts = fillPorts;
 window.manualSelected = manualSelected;
+window.shuffleObject = shuffleObject;
 
 window.allCornerScores = function(){
     for(var coords in board.tiles){
