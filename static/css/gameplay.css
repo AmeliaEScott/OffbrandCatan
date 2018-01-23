@@ -1,0 +1,41 @@
+.img-overlay {
+    position: relative;
+    max-height: 250px;
+}
+
+.img-overlay > img {
+    display: block;
+}
+
+.hidden {
+    display: none;
+}
+
+/*
+This class adds the "disabled" overlay to things you don't have the resources to build
+*/
+.disabled-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background-color: rgba(100, 100, 100, 0.2);
+    opacity: 0.3;
+
+    /*
+    I could put the background-image here, but since I'm getting the URL for it using url_for(), and this
+    file isn't a template, I can't do that. So I do it in the HTML file.
+    */
+}
+
+.card-image {
+    /*
+    The two values are horizontal radius / vertical radius.
+    Vertical should equal 0.6731 * horizontal, so that the rounded corner is a circle and not an ellipse.
+     0.6731 is the ratio of height / width of all of the cards.
+     */
+    -webkit-border-radius: 15%/10.1%;
+    -moz-border-radius: 15%/10.1%;
+    border-radius: 15%/10.1%;
+}

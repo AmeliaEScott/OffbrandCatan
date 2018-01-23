@@ -182,7 +182,7 @@ class Edge extends Shape {
      * @param coords Coordinates of this edge
      * @param board Parent board
      * @param player Player ID who owns the road, if any
-     * @param port {{resource: undefined | string, cost: number, reward: number}} Should be non-null if this edge
+     * @param port {{resource: null | string, cost: number, reward: number}} Should be non-null if this edge
      * has a port.
      * TODO: Also, figure out ships
      */

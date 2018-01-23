@@ -1,0 +1,27 @@
+.svg-container {
+    overflow: hidden;
+    height: 90vh;
+    position: relative;
+    top: 0;
+    left: 0;
+    z-index: 0;
+}
+
+.gameboard {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+}
+
+.hex-tile {
+    clip-path: url(#hex-clip);
+}
+
+.unclickable {
+    pointer-events: none;
+}
+
+.seethrough {
+    opacity: 0;
+}
