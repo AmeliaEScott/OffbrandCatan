@@ -1,0 +1,6 @@
+-cp src
+
+--each
+
+-js bin/js/hexgrid.js
+-

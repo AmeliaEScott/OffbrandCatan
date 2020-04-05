@@ -120,8 +120,7 @@ class Tile extends Shape {
      * @param thief Whether or not to draw the thief on this tile.
      * @param facedown If true (or if resourcetype is null), this tile is rendered facedown.
      */
-    constructor(coords, board, {number: number, resourcetype: resourcetype, thief: thief, facedown: facedown} =
-    {number: 0, resourcetype: null, thief: false, facedown: false}) {
+    constructor(coords, board, number=0, resourcetype=null, thief=false, facedown=false) {
         super(coords, board, "#hex-template");
         this.number = number;
         this.resourcetype = resourcetype;
@@ -182,11 +181,11 @@ class Edge extends Shape {
      * @param coords Coordinates of this edge
      * @param board Parent board
      * @param player Player ID who owns the road, if any
-     * @param port {{resource: null | string, cost: number, reward: number}} Should be non-null if this edge
+     * @param port {null|{resource: null | string, cost: number, reward: number}} Should be non-null if this edge
      * has a port.
      * TODO: Also, figure out ships
      */
-    constructor(coords, board, {player: player, port: port} = {player: null, port: null}) {
+    constructor(coords, board, player=null, port=null) {
         super(coords, board, "#edge-template");
         this.player = player;
         this.port = port;
@@ -260,7 +259,7 @@ const cornerTransforms = {
  */
 class Corner extends Shape {
 
-    constructor(coords, board, {player: player, type: type} = {player: null, type: null}){
+    constructor(coords, board, player=null, type=null){
         super(coords, board, "#corner-template");
         this.player = player;
         this.type = type;
@@ -399,11 +398,14 @@ class GameBoard extends HexGrid {
      * Adds a tile to the grid, along with all the edges and corners surrounding it, and displays it on the SVG.
      * TODO: Attach existing event listeners to the new tile, and to its new edges and corners.
      * @param coords Coordinates of the tile
-     * @param data Tile data
+     * @param number {number} Number on the tile
+     * @param resourcetype {null|string} Resource of the tile ("wheat", "sheep", etc.)
+     * @param facedown {boolean} True if this tile should be rendered facedown
+     * @param thief {boolean} True if this tile has the thief on it
      * @param surroundings If true, then also add the edges and corners surrounding this tile.
      */
-    addTile(coords, data = {number: 0, resourcetype: null, thief: false, facedown: false}, surroundings = true) {
-        var tile = new Tile(coords, this, data);
+    addTile(coords, number=0, resourcetype=null, facedown=false, thief=false, surroundings = true) {
+        var tile = new Tile(coords, this, number, resourcetype, thief, facedown);
         if (this.contains(coords)) {
             this.remove(coords);
         }
@@ -426,8 +428,8 @@ class GameBoard extends HexGrid {
         }
     }
 
-    addCorner(coords, {player: player, type: type} = {player: null, type: null}) {
-        var corner = new Corner(coords, this, {player, type});
+    addCorner(coords, player=null, type=null) {
+        var corner = new Corner(coords, this, player, type);
 
         if(this.contains(coords)){
             this.remove(coords);
@@ -436,8 +438,8 @@ class GameBoard extends HexGrid {
 
     }
 
-    addEdge(coords, {player: player, port: port} = {player: null, port: null}) {
-        var edge = new Edge(coords, this, {player, port});
+    addEdge(coords, player=null, port=null) {
+        var edge = new Edge(coords, this, player, port);
 
         if (this.contains(coords)) {
             this.remove(coords);
@@ -450,7 +452,7 @@ class GameBoard extends HexGrid {
         var tiledata = {};
         for(var coords in this.tiles){
             if(this.tiles.hasOwnProperty(coords)){
-                tiledata[coords] = this.tiles[coords].data;
+                tiledata[coords] = this.tiles[coords].asJSON();
             }
         }
         return {

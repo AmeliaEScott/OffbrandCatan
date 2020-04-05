@@ -1,0 +1,12 @@
+## Python
+--next
+-main TestMain
+-lib munit
+-lib hamcrest
+-cp src
+
+-cp test
+-python bin/python_test.py
+
+
+

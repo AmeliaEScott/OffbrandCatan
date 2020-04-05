@@ -50,6 +50,9 @@
             <li class="nav-item">
                 <a class="nav-link" data-toggle="tab" href="#rules-tab" role="tab">Rules</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" id="create-game-button" role="tab" href="#">Create Game</a>
+            </li>
         </ul>
     </div>
 </nav>
@@ -157,8 +160,8 @@
                                             <button class="btn btn-info btn-block" id="automatic-fill-numbers">Fill Numbers</button>
                                             <button class="btn btn-info btn-block" id="automatic-fill-ports">Place Ports</button>
 
-                                            <div class="text-primary hidden" id="automatic-fill-numbers-wait">
-                                                This could take up to 20 seconds. Please be patient...
+                                            <div class="text-primary hidden" id="automatic-fill-wait">
+                                                This could take up to 10 seconds. Please be patient...
                                             </div>
 
                                         </form>
@@ -254,19 +257,23 @@
                             </div>
                         </div>
                     </div>
-
                 </div>
 
             </div>
         </div>
 
-        <!-- "My Resources" Tab -->
+        <!-- "Rules" Tab -->
         <div id="rules-tab" class="tab-pane">
-            <h3>Rules will be added later.</h3>
+            <!-- TODO: Add rules -->
+            <h4>Rules will be added later</h4>
         </div>
 
     </div>
 </div>
+
+<form class="hidden" method="POST" action="{{ url_for('gameplay.create_game') }}" id="hidden-form">
+    <input type="hidden" name="data" value="data" id="hidden-form-data">
+</form>
 
 <script type="text/javascript">
     "use strict";

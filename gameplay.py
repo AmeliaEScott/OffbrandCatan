@@ -5,6 +5,7 @@ from database import db_session
 from models import User, Game
 from settings import DEBUG, VERSION, HEX_CLIP_PATH
 import re
+import json
 
 gameplay_blueprint = Blueprint('gameplay', __name__, template_folder='templates')
 
@@ -13,6 +14,13 @@ gameplay_blueprint = Blueprint('gameplay', __name__, template_folder='templates'
 @login_required
 def new_game():
     return make_response(render_template("gamesetup.html", version=VERSION, hex_clip_path=HEX_CLIP_PATH))
+
+
+@gameplay_blueprint.route("/creategame", methods=["POST"])
+@login_required
+def create_game():
+    data = json.loads(request.form['data'])
+    return make_response(render_template("debug_template.html", message=json.dumps(data, indent=4, sort_keys=True)))
 
 
 @gameplay_blueprint.route("/game/<game_id>", methods=['GET'])
