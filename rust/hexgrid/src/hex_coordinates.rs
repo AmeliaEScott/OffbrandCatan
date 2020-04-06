@@ -1,7 +1,9 @@
 use std::fmt;
 use std::str::FromStr;
+use serde::{ser, de};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub enum CornerDirection {
     Northwest,
     North,
@@ -11,7 +13,7 @@ pub enum CornerDirection {
     Southwest,
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub enum EdgeDirection {
     Northwest,
     Northeast,
@@ -21,7 +23,7 @@ pub enum EdgeDirection {
     West,
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 enum CoordType {
     Tile,
     EdgeNorthwest,
@@ -241,5 +243,23 @@ impl FromStr for HexCoordinates {
             .or(Err(format!("In coords '{}': '{}' is not a valid integer", s, y_str)))?;
         let coord_type = CoordType::from_str(coord_type_str)?;
         Ok(HexCoordinates{x, y, coord_type})
+    }
+}
+
+impl Serialize for HexCoordinates {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: ser::Serializer,
+    {
+        serializer.serialize_str(self.to_string().as_str())
+    }
+}
+
+impl<'de> Deserialize<'de> for HexCoordinates {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where D: de::Deserializer<'de>
+    {
+        let s = String::deserialize(deserializer)?;
+        HexCoordinates::from_str(&s).map_err(de::Error::custom)
     }
 }

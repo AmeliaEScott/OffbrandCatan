@@ -4,6 +4,8 @@ mod hex_coordinates_tests {
     use hexgrid::hex_coordinates::{HexCoordinates, EdgeDirection, CornerDirection};
     use std::str::FromStr;
     use std::collections::HashMap;
+    use rand;
+    use rand::prelude::*;
 
     #[test]
     pub fn tile_equality_test() {
@@ -215,5 +217,62 @@ mod hex_coordinates_tests {
         map.insert(edge3, "Edge 3!");
 
         assert_eq!(map.len(), 2);
+    }
+
+    #[test]
+    pub fn json_test() {
+        let mut map = HashMap::new();
+
+        let edge1 = HexCoordinates::edge(0, 0, EdgeDirection::East);
+        let edge2 = HexCoordinates::edge(1, 0, EdgeDirection::West);
+        let edge3 = HexCoordinates::edge(3, 3, EdgeDirection::Northeast);
+
+        map.insert(edge1, "Edge 1!");
+        map.insert(edge2, "Edge 2!");
+        map.insert(edge3, "Edge 3!");
+
+        let s = serde_json::to_string(&map).unwrap();
+        println!("{}", s);
+        let map2: HashMap<HexCoordinates, &str> = serde_json::from_str(&s).unwrap();
+        assert_eq!(map, map2)
+    }
+
+    #[test]
+    pub fn big_json_test() {
+        let type_dist = rand::distributions::Uniform::new(0, 3);
+        let dir_dist = rand::distributions::Uniform::new(0, 6);
+        let coord_dist = rand::distributions::Uniform::new(-10, 10);
+        let mut rng = thread_rng();
+
+        let mut map = HashMap::new();
+
+        for _ in 0..200 {
+            let type_num = rng.sample(type_dist);
+            let coord = match type_num {
+                0 => HexCoordinates::tile(rng.sample(coord_dist), rng.sample(coord_dist)),
+                1 => HexCoordinates::corner(rng.sample(coord_dist), rng.sample(coord_dist), match rng.sample(dir_dist) {
+                    0 => CornerDirection::Northwest,
+                    1 => CornerDirection::North,
+                    2 => CornerDirection::Northeast,
+                    3 => CornerDirection::Southeast,
+                    4 => CornerDirection::South,
+                    _ => CornerDirection::Southwest
+                }),
+                _ => HexCoordinates::edge(rng.sample(coord_dist), rng.sample(coord_dist), match rng.sample(dir_dist) {
+                    0 => EdgeDirection::Northwest,
+                    1 => EdgeDirection::Northeast,
+                    2 => EdgeDirection::East,
+                    3 => EdgeDirection::Southeast,
+                    4 => EdgeDirection::Southwest,
+                    _ => EdgeDirection::West
+                })
+            };
+            map.insert(coord, "Data!");
+        }
+
+        let s = serde_json::to_string(&map).unwrap();
+        println!("{}", s);
+        let map2: HashMap<HexCoordinates, &str> = serde_json::from_str(&s).unwrap();
+        assert_eq!(map, map2)
     }
 }
