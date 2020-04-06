@@ -1,3 +1,5 @@
+use std::fmt;
+use std::str::FromStr;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum CornerDirection {
@@ -29,13 +31,41 @@ enum CoordType {
     CornerNortheast
 }
 
+impl fmt::Display for CoordType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            CoordType::Tile => write!(f, "Tile"),
+            CoordType::EdgeNorthwest => write!(f, "EdgeNorthwest"),
+            CoordType::EdgeNortheast => write!(f, "EdgeNortheast"),
+            CoordType::EdgeEast => write!(f, "EdgeEast"),
+            CoordType::CornerNorth => write!(f, "CornerNorth"),
+            CoordType::CornerNortheast => write!(f, "CornerNortheast"),
+        }
+    }
+}
+
+impl FromStr for CoordType {
+    type Err = String; // TODO: Implement a proper error type
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "Tile" => Ok(CoordType::Tile),
+            "EdgeNorthwest" => Ok(CoordType::EdgeNorthwest),
+            "EdgeNortheast" => Ok(CoordType::EdgeNortheast),
+            "EdgeEast" => Ok(CoordType::EdgeEast),
+            "CornerNorth" => Ok(CoordType::CornerNorth),
+            "CornerNortheast" => Ok(CoordType::CornerNortheast),
+            _ => Err(format!("'{}' is not a valid type for CoordType", s))
+        }
+    }
+}
+
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct HexCoordinates {
     x: i32,
     y: i32,
     coord_type: CoordType
 }
-
 
 impl HexCoordinates {
 
@@ -187,5 +217,29 @@ impl HexCoordinates {
                 HexCoordinates::corner(self.x + 1, self.y, CornerDirection::North),
             ],
         }
+    }
+}
+
+impl fmt::Display for HexCoordinates {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{},{},{:?}", self.x, self.y, self.coord_type)
+    }
+}
+
+impl FromStr for HexCoordinates {
+    type Err = String; // TODO: Implement a proper error type
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut split = s.split(',');
+        let x_str = split.next().ok_or(format!("'{}' is not proper HexCoordinates", s))?;
+        let y_str = split.next().ok_or(format!("'{}' is not proper HexCoordinates", s))?;
+        let coord_type_str = split.next().ok_or(format!("'{}' is not proper HexCoordinates", s))?;
+
+        let x = x_str.parse::<i32>()
+            .or(Err(format!("In coords '{}': '{}' is not a valid integer", s, x_str)))?;
+        let y = y_str.parse::<i32>()
+            .or(Err(format!("In coords '{}': '{}' is not a valid integer", s, y_str)))?;
+        let coord_type = CoordType::from_str(coord_type_str)?;
+        Ok(HexCoordinates{x, y, coord_type})
     }
 }
