@@ -1,6 +1,9 @@
 -cp src
-
+hexgrid.HexCoordinates
+hexgrid.HexGrid
 --each
 
 -js bin/js/hexgrid.js
--
+
+--next
+-python bin/python/hexgrid.py

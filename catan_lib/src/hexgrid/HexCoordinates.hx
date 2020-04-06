@@ -2,6 +2,7 @@ package hexgrid;
 
 import haxe.ds.Vector;
 
+@:expose
 enum EdgeDirection {
     NORTHWEST;
     NORTHEAST;
@@ -11,6 +12,7 @@ enum EdgeDirection {
     WEST;
 }
 
+@:expose
 enum CornerDirection {
     NORTHWEST;
     NORTH;
@@ -41,6 +43,8 @@ private enum HexCoordinatesEnum {
 *
 * Internally, all coordinates are converted to be in the directions of northwest, north, northeast, or east.
 **/
+@:expose
+@:keep
 abstract HexCoordinates(HexCoordinatesEnum) {
 
     public static function corner(x: Int, y: Int, dir: CornerDirection): HexCoordinates {

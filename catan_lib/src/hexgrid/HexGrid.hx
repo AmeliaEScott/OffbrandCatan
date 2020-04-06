@@ -1,13 +1,13 @@
 package hexgrid;
 
-enum HexDirection {
+import hexgrid.HexCoordinates;
+import haxe.ds.Map;
 
-}
-
-enum HexCoordinates {
-
-}
-
+@:keep
 class HexGrid {
+    var data: Map<String, String>;
 
+    public function new() {
+        this.data = new Map<String, String>();
+    }
 }
