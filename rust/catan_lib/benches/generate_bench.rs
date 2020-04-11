@@ -10,8 +10,16 @@ pub mod tests {
     use test::Bencher;
 
     #[bench]
-    pub fn generate_tiles_lotsa_tests(b: &mut Bencher) {
+    pub fn vanilla_generate_bench(b: &mut Bencher) {
         let config = MapGenerationSettings::defaults_vanilla();
+        b.iter(|| {
+            generate_tiles(&config).unwrap()
+        });
+    }
+
+    #[bench]
+    pub fn vanilla56_generate_bench(b: &mut Bencher) {
+        let config = MapGenerationSettings::defaults_vanilla56();
         b.iter(|| {
             generate_tiles(&config).unwrap()
         });

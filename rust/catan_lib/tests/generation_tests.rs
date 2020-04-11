@@ -54,21 +54,34 @@ pub mod tests {
     }
 
     #[test]
-    pub fn generate_tiles_test() {
+    pub fn generate_tiles_vanilla_test() {
         let config = MapGenerationSettings::defaults_vanilla();
         let grid = catan_lib::generation::generate_tiles(&config).unwrap();
-        let s = serde_json::to_string_pretty(&grid).unwrap();
-        //println!("{}", s);
 
         validate_no_adjacent(&grid);
-
         validate_counts(&grid, &config);
     }
 
     #[test]
-    pub fn generate_lotsa_tiles_test() {
+    pub fn generate_tiles_vanilla56_test() {
+        let config = MapGenerationSettings::defaults_vanilla56();
+        let grid = catan_lib::generation::generate_tiles(&config).unwrap();
+
+        validate_no_adjacent(&grid);
+        validate_counts(&grid, &config);
+    }
+
+    #[test]
+    pub fn generate_lotsa_tiles_vanilla_test() {
         for _ in 0..100 {
-            generate_tiles_test();
+            generate_tiles_vanilla_test();
         }
     }
+
+    // #[test]
+    // pub fn generate_lotsa_tiles_vanilla56_test() {
+    //     for _ in 0..100 {
+    //         generate_tiles_vanilla56_test();
+    //     }
+    // }
 }

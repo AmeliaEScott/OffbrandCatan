@@ -3,7 +3,6 @@ use super::types::{Tile, TileType, Resource};
 use super::configuration;
 use super::GameGrid;
 use rand::prelude::*;
-use std::collections::HashSet;
 
 pub fn generate_tiles(config: &configuration::MapGenerationSettings) -> Result<GameGrid, ()> {
     let mut grid = GameGrid::new();
@@ -54,6 +53,10 @@ fn recurse_tiles(
 
     let new_coord = &coords[0];
     for i in 0..tiles.len() {
+
+        if i != 0 && tiles[0] == tiles[i] {
+            continue;
+        }
 
         tiles.swap(0, i);
         let new_tile = tiles[0].clone();
