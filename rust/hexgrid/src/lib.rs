@@ -21,23 +21,23 @@ impl<T, E, C> HexGrid<T, E, C> {
         }
     }
 
-    pub fn get_tile_neighbors<CoordType: HexCoord>(&self, coords: &CoordType) -> Vec<&T> {
+    pub fn get_tile_neighbors<CoordType: HexCoord>(&self, coords: &CoordType) -> Vec<(Tile, &T)> {
         coords.get_tile_neighbors().into_iter()
-            .map(|c| self.tiles.get(&c))
+            .map(|c| self.tiles.get(&c).map(|data| (c, data)))
             .flatten()
             .collect()
     }
 
-    pub fn get_corner_neighbors<CoordType: HexCoord>(&self, coords: &CoordType) -> Vec<&C> {
+    pub fn get_corner_neighbors<CoordType: HexCoord>(&self, coords: &CoordType) -> Vec<(Corner, &C)> {
         coords.get_corner_neighbors().into_iter()
-            .map(|c| self.corners.get(&c))
+            .map(|c| self.corners.get(&c).map(|data| (c, data)))
             .flatten()
             .collect()
     }
 
-    pub fn get_edge_neighbors<CoordType: HexCoord>(&self, coords: &CoordType) -> Vec<&E> {
+    pub fn get_edge_neighbors<CoordType: HexCoord>(&self, coords: &CoordType) -> Vec<(Edge, &E)> {
         coords.get_edge_neighbors().into_iter()
-            .map(|c| self.edges.get(&c))
+            .map(|c| self.edges.get(&c).map(|data| (c, data)))
             .flatten()
             .collect()
     }

@@ -146,11 +146,9 @@ mod hex_coordinates_tests {
         let edge = Edge::new(0, 0, EdgeDirection::Northeast);
         let corner = Corner::new(0, 0, CornerDirection::Northeast);
 
-        let tile_str = tile.to_string();
-        let edge_str = edge.to_string();
-        let corner_str = corner.to_string();
-
-        print!("Tile: {}, Edge: {}, Corner: {}", tile_str, edge_str, corner_str);
+        let _tile_str = tile.to_string();
+        let _edge_str = edge.to_string();
+        let _corner_str = corner.to_string();
     }
 
     #[test]
@@ -236,7 +234,6 @@ mod hex_coordinates_tests {
         map.insert(edge3, "Edge 3!");
 
         let s = serde_json::to_string(&map).unwrap();
-        println!("{}", s);
         let map2: HashMap<Edge, &str> = serde_json::from_str(&s).unwrap();
         assert_eq!(map, map2)
     }
@@ -279,7 +276,6 @@ mod hex_coordinates_tests {
         let s_tiles = serde_json::to_string(&tiles).unwrap();
         let s_edges = serde_json::to_string(&edges).unwrap();
         let s_corners = serde_json::to_string(&corners).unwrap();
-        println!("{}\n{}\n{}", s_tiles, s_edges, s_corners);
         let tiles2: HashMap<Tile, &str> = serde_json::from_str(&s_tiles).unwrap();
         let edges2: HashMap<Edge, &str> = serde_json::from_str(&s_edges).unwrap();
         let corners2: HashMap<Corner, &str> = serde_json::from_str(&s_corners).unwrap();

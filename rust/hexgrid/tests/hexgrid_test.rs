@@ -73,7 +73,6 @@ mod hexgrid_tests {
         grid.corners.insert(Corner::new(0, 0, CornerDirection::Northwest), true);
 
         let s = serde_json::to_string(&grid).unwrap();
-        println!("{}", s);
         let grid2: HexGrid<i32, &str, bool> = serde_json::from_str(&s).unwrap();
         assert_eq!(grid, grid2);
     }

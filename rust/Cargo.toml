@@ -2,4 +2,5 @@
 
 members = [
     "hexgrid",
+    "catan_lib"
 ]
