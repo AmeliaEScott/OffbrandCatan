@@ -25,7 +25,8 @@ pub struct Rules {
     pub devcard_vp_count: u32,
     pub devcard_yop_count: u32,
     pub devcard_monopoly_count: u32,
-    pub devcard_road_count: u32
+    pub devcard_road_count: u32,
+    pub special_build_phase: bool,
 }
 
 impl Rules {
@@ -34,13 +35,20 @@ impl Rules {
     /// ```
     /// let rules = catan_lib::configuration::Rules::defaults_vanilla();
     /// ```
-    ///
-
     pub fn defaults_vanilla() -> Rules {
         let config_str = include_str!("configuration_defaults/vanilla/rules.json");
         serde_json::from_str(config_str).unwrap()
     }
 
+    /// Get the default rules for the base game
+    ///
+    /// ```
+    /// let rules = catan_lib::configuration::Rules::defaults_vanilla56();
+    /// ```
+    pub fn defaults_vanilla56() -> Rules {
+        let config_str = include_str!("configuration_defaults/vanilla56/rules.json");
+        serde_json::from_str(config_str).unwrap()
+    }
     // TODO: Add the rest of the possible defaults
 }
 
@@ -54,7 +62,7 @@ pub struct MapGenerationSettings {
     pub wheat_count: u32,
     pub wood_count: u32,
     pub clay_count: u32,
-    pub rocks_count: u32,
+    pub stone_count: u32,
     pub sheep_count: u32,
     pub desert_count: u32,
     pub gold_count: u32,
@@ -82,6 +90,16 @@ impl MapGenerationSettings {
     /// ```
     pub fn defaults_vanilla() -> MapGenerationSettings {
         let config_str = include_str!("configuration_defaults/vanilla/generation.json");
+        serde_json::from_str(config_str).unwrap()
+    }
+
+    /// Default map generation for base game
+    ///
+    /// ```
+    /// let config = catan_lib::configuration::MapGenerationSettings::defaults_vanilla56();
+    /// ```
+    pub fn defaults_vanilla56() -> MapGenerationSettings {
+        let config_str = include_str!("configuration_defaults/vanilla56/generation.json");
         serde_json::from_str(config_str).unwrap()
     }
 }

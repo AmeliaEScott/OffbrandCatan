@@ -1,7 +1,3 @@
-#![feature(test)]
-
-extern crate test;
-
 #[cfg(test)]
 pub mod tests {
     use serde_json;
@@ -9,7 +5,6 @@ pub mod tests {
     use catan_lib::{GameGrid, types::{TileType, Resource}, configuration::MapGenerationSettings};
     use catan_lib::types::Tile;
 
-    use test::Bencher;
     use catan_lib::generation::generate_tiles;
 
     fn validate_counts(grid: &GameGrid, config: &MapGenerationSettings) {
@@ -38,7 +33,7 @@ pub mod tests {
         assert_eq!(wood_count, config.wood_count);
         assert_eq!(wheat_count, config.wheat_count);
         assert_eq!(clay_count, config.clay_count);
-        assert_eq!(stone_count, config.rocks_count);
+        assert_eq!(stone_count, config.stone_count);
         assert_eq!(sheep_count, config.sheep_count);
         assert_eq!(desert_count, config.desert_count);
         assert_eq!(gold_count, config.gold_count);
@@ -70,11 +65,10 @@ pub mod tests {
         validate_counts(&grid, &config);
     }
 
-    #[bench]
-    pub fn generate_tiles_lotsa_tests(b: &mut Bencher) {
-        let config = MapGenerationSettings::defaults_vanilla();
-        b.iter(|| {
-            catan_lib::generation::generate_tiles(&config)
-        });
+    #[test]
+    pub fn generate_lotsa_tiles_test() {
+        for _ in 0..100 {
+            generate_tiles_test();
+        }
     }
 }

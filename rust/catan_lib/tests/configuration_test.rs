@@ -5,6 +5,6 @@ pub mod configuration_test {
     #[test]
     pub fn configuration_vanilla_test() {
         // Make sure it doesn't panic.
-        let rules = catan_lib::configuration::Rules::defaults_vanilla();
+        let _rules = catan_lib::configuration::Rules::defaults_vanilla();
     }
 }

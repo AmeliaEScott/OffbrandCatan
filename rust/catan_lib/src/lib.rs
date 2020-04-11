@@ -1,5 +1,3 @@
-#![feature(test)]
-
 pub mod types;
 pub mod player;
 pub mod configuration;
@@ -18,31 +16,4 @@ pub struct Game {
     rules: configuration::Rules,
     grid: GameGrid,
     development_cards: Vec<types::DevelopmentCard>
-}
-
-
-
-
-
-
-
-
-
-
-
-extern crate test;
-
-#[cfg(test)]
-pub mod tests {
-    use serde_json;
-    use super::configuration::MapGenerationSettings;
-    use test::Bencher;
-
-    #[bench]
-    pub fn generate_tiles_lotsa_tests(b: &mut Bencher) {
-        let config = MapGenerationSettings::defaults_vanilla();
-        b.iter(|| {
-            super::generation::generate_tiles(&config).unwrap()
-        });
-    }
 }
