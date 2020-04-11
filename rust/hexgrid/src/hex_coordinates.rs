@@ -23,10 +23,57 @@ pub enum EdgeDirection {
     West,
 }
 
-pub trait HexCoord<'de>: fmt::Display + Deserialize<'de> + Serialize {
+pub trait HexCoord: fmt::Display + FromStr {
+    fn label(&self) -> String;
+    fn new(x: i32, y: i32, label: &str) -> Result<Self, String>;
+
     fn get_tile_neighbors(&self) -> Vec<Tile>;
     fn get_edge_neighbors(&self) -> Vec<Edge>;
     fn get_corner_neighbors(&self) -> Vec<Corner>;
+}
+
+macro_rules! impl_serde_for_hexcoord {
+    ($t: ident) => {
+        impl fmt::Display for $t {
+            fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                write!(f, "{},{},{}", self.x, self.y, self.label())
+            }
+        }
+
+        impl FromStr for $t {
+            type Err = String; // TODO: Better error type?
+
+            fn from_str(s: &str) -> Result<Self, Self::Err> {
+                let mut split = s.split(',');
+                let x_str = split.next().ok_or(format!("'{}' is not proper HexCoordinates", s))?;
+                let y_str = split.next().ok_or(format!("'{}' is not proper HexCoordinates", s))?;
+                let dir_str = split.next().ok_or(format!("'{}' is not proper HexCoordinates", s))?;
+
+                let x = x_str.parse::<i32>()
+                    .or(Err(format!("In coords '{}': '{}' is not a valid integer", s, x_str)))?;
+                let y = y_str.parse::<i32>()
+                    .or(Err(format!("In coords '{}': '{}' is not a valid integer", s, y_str)))?;
+                <$t as HexCoord>::new(x, y, dir_str)
+            }
+        }
+
+        impl Serialize for $t {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+                where S: ser::Serializer
+            {
+                serializer.serialize_str(self.to_string().as_str())
+            }
+        }
+
+        impl<'de> Deserialize<'de> for $t {
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+                where D: de::Deserializer<'de>
+            {
+                let s = String::deserialize(deserializer)?;
+                Self::from_str(&s).map_err(de::Error::custom)
+            }
+        }
+    }
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
@@ -41,7 +88,18 @@ impl Tile {
     }
 }
 
-impl HexCoord<'_> for Tile {
+impl HexCoord for Tile {
+    fn label(&self) -> String {
+        "Tile".to_string()
+    }
+
+    fn new(x: i32, y: i32, label: &str) -> Result<Self, String> {
+        match label {
+            "Tile" => Ok(Tile{x, y}),
+            _ => Err(format!("'{}' should be 'Tile'", label))
+        }
+    }
+
     fn get_tile_neighbors(&self) -> Vec<Tile> {
         vec![
             Tile::new(self.x + 1, self.y),
@@ -76,50 +134,7 @@ impl HexCoord<'_> for Tile {
     }
 }
 
-impl fmt::Display for Tile {
-
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{},{},Tile", self.x, self.y)
-    }
-}
-
-impl FromStr for Tile {
-    type Err = String; // TODO: Better error type?
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut split = s.split(',');
-        let x_str = split.next().ok_or(format!("'{}' is not proper HexCoordinates", s))?;
-        let y_str = split.next().ok_or(format!("'{}' is not proper HexCoordinates", s))?;
-        let dir_str = split.next().ok_or(format!("'{}' is not proper HexCoordinates", s))?;
-
-        let x = x_str.parse::<i32>()
-            .or(Err(format!("In coords '{}': '{}' is not a valid integer", s, x_str)))?;
-        let y = y_str.parse::<i32>()
-            .or(Err(format!("In coords '{}': '{}' is not a valid integer", s, y_str)))?;
-        match dir_str {
-            "Tile" => Ok(Tile{x, y}),
-            _ => Err(format!("In coords '{}': Got '{}', expected 'Tile'", s, dir_str))
-        }
-    }
-}
-
-impl Serialize for Tile {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: ser::Serializer,
-    {
-        serializer.serialize_str(self.to_string().as_str())
-    }
-}
-
-impl<'de> Deserialize<'de> for Tile {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: de::Deserializer<'de>
-    {
-        let s = String::deserialize(deserializer)?;
-        Self::from_str(&s).map_err(de::Error::custom)
-    }
-}
+impl_serde_for_hexcoord!(Tile);
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 enum CornerDir {
@@ -174,7 +189,15 @@ impl Corner {
     }
 }
 
-impl HexCoord<'_> for Corner {
+impl HexCoord for Corner {
+    fn label(&self) -> String {
+        self.dir.to_string()
+    }
+
+    fn new(x: i32, y: i32, label: &str) -> Result<Self, String> {
+        let dir = CornerDir::from_str(label)?;
+        Ok(Corner{x, y, dir})
+    }
 
     fn get_tile_neighbors(&self) -> Vec<Tile> {
         match self.dir {
@@ -222,48 +245,7 @@ impl HexCoord<'_> for Corner {
     }
 }
 
-impl fmt::Display for Corner {
-
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{},{},{}", self.x, self.y, self.dir)
-    }
-}
-
-impl FromStr for Corner {
-    type Err = String; // TODO: Better error type?
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut split = s.split(',');
-        let x_str = split.next().ok_or(format!("'{}' is not proper HexCoordinates", s))?;
-        let y_str = split.next().ok_or(format!("'{}' is not proper HexCoordinates", s))?;
-        let dir_str = split.next().ok_or(format!("'{}' is not proper HexCoordinates", s))?;
-
-        let x = x_str.parse::<i32>()
-            .or(Err(format!("In coords '{}': '{}' is not a valid integer", s, x_str)))?;
-        let y = y_str.parse::<i32>()
-            .or(Err(format!("In coords '{}': '{}' is not a valid integer", s, y_str)))?;
-        let dir = CornerDir::from_str(dir_str)?;
-        Ok(Corner{x, y, dir})
-    }
-}
-
-impl Serialize for Corner {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: ser::Serializer,
-    {
-        serializer.serialize_str(self.to_string().as_str())
-    }
-}
-
-impl<'de> Deserialize<'de> for Corner {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: de::Deserializer<'de>
-    {
-        let s = String::deserialize(deserializer)?;
-        Self::from_str(&s).map_err(de::Error::custom)
-    }
-}
+impl_serde_for_hexcoord!(Edge);
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 enum EdgeDir {
@@ -321,7 +303,15 @@ impl Edge {
     }
 }
 
-impl HexCoord<'_> for Edge {
+impl HexCoord for Edge {
+    fn label(&self) -> String {
+        self.dir.to_string()
+    }
+
+    fn new(x: i32, y: i32, label: &str) -> Result<Self, String> {
+        let dir = EdgeDir::from_str(label)?;
+        Ok(Edge{x, y, dir})
+    }
 
     fn get_tile_neighbors(&self) -> Vec<Tile> {
         match self.dir {
@@ -381,45 +371,4 @@ impl HexCoord<'_> for Edge {
     }
 }
 
-impl fmt::Display for Edge {
-
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{},{},{}", self.x, self.y, self.dir)
-    }
-}
-
-impl FromStr for Edge {
-    type Err = String; // TODO: Better error type?
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut split = s.split(',');
-        let x_str = split.next().ok_or(format!("'{}' is not proper HexCoordinates", s))?;
-        let y_str = split.next().ok_or(format!("'{}' is not proper HexCoordinates", s))?;
-        let dir_str = split.next().ok_or(format!("'{}' is not proper HexCoordinates", s))?;
-
-        let x = x_str.parse::<i32>()
-            .or(Err(format!("In coords '{}': '{}' is not a valid integer", s, x_str)))?;
-        let y = y_str.parse::<i32>()
-            .or(Err(format!("In coords '{}': '{}' is not a valid integer", s, y_str)))?;
-        let dir = EdgeDir::from_str(dir_str)?;
-        Ok(Edge{x, y, dir})
-    }
-}
-
-impl Serialize for Edge {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: ser::Serializer,
-    {
-        serializer.serialize_str(self.to_string().as_str())
-    }
-}
-
-impl<'de> Deserialize<'de> for Edge {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: de::Deserializer<'de>
-    {
-        let s = String::deserialize(deserializer)?;
-        Self::from_str(&s).map_err(de::Error::custom)
-    }
-}
+impl_serde_for_hexcoord!(Corner);
