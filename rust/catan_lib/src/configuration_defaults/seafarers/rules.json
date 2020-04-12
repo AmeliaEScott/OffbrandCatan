@@ -1,10 +1,10 @@
 {
   "road_count": 15,
-  "ship_count": 0,
+  "ship_count": 15,
   "settlement_count": 5,
   "city_count": 4,
   "thief_resource_threshold": 7,
-  "can_build_ships": false,
+  "can_build_ships": true,
   "hide_unexplored_tiles": false,
   "devcard_knight_count": 14,
   "devcard_vp_count": 5,

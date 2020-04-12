@@ -12,7 +12,7 @@ use hexgrid::hex_coordinates;
 /// `unwrap()` will only panic if the JSON configuration file is improperly formatted. The contents
 /// of this file are included at compile time, so if the tests pass without panicking, then
 /// these `defaults_` functions are guaranteed not to panic.
-#[derive(Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Rules {
     pub road_count: u32,
     pub ship_count: u32,
@@ -49,6 +49,26 @@ impl Rules {
         let config_str = include_str!("configuration_defaults/vanilla56/rules.json");
         serde_json::from_str(config_str).unwrap()
     }
+
+    /// Get the default rules for the base game
+    ///
+    /// ```
+    /// let rules = catan_lib::configuration::Rules::defaults_seafarers();
+    /// ```
+    pub fn defaults_seafarers() -> Rules {
+        let config_str = include_str!("configuration_defaults/seafarers/rules.json");
+        serde_json::from_str(config_str).unwrap()
+    }
+
+    /// Get the default rules for the base game
+    ///
+    /// ```
+    /// let rules = catan_lib::configuration::Rules::defaults_sheepland();
+    /// ```
+    pub fn defaults_sheepland() -> Rules {
+        let config_str = include_str!("configuration_defaults/sheepland/rules.json");
+        serde_json::from_str(config_str).unwrap()
+    }
     // TODO: Add the rest of the possible defaults
 }
 
@@ -57,7 +77,7 @@ impl Rules {
 /// These settings are only used when randomly generating a map before a game starts. They are
 /// not needed for gameplay. Therefore, after the map is generated, these settings need not
 /// be stored in a database.
-#[derive(Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct MapGenerationSettings {
     pub wheat_count: u32,
     pub wood_count: u32,
@@ -100,6 +120,26 @@ impl MapGenerationSettings {
     /// ```
     pub fn defaults_vanilla56() -> MapGenerationSettings {
         let config_str = include_str!("configuration_defaults/vanilla56/generation.json");
+        serde_json::from_str(config_str).unwrap()
+    }
+
+    /// Default map generation for base game
+    ///
+    /// ```
+    /// let config = catan_lib::configuration::MapGenerationSettings::defaults_seafarers();
+    /// ```
+    pub fn defaults_seafarers() -> MapGenerationSettings {
+        let config_str = include_str!("configuration_defaults/seafarers/generation.json");
+        serde_json::from_str(config_str).unwrap()
+    }
+
+    /// Default map generation for base game
+    ///
+    /// ```
+    /// let config = catan_lib::configuration::MapGenerationSettings::defaults_sheepland();
+    /// ```
+    pub fn defaults_sheepland() -> MapGenerationSettings {
+        let config_str = include_str!("configuration_defaults/sheepland/generation.json");
         serde_json::from_str(config_str).unwrap()
     }
 }

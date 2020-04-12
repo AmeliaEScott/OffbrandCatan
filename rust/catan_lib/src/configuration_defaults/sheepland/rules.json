@@ -6,10 +6,10 @@
   "thief_resource_threshold": 7,
   "can_build_ships": false,
   "hide_unexplored_tiles": false,
-  "devcard_knight_count": 14,
+  "devcard_knight_count": 20,
   "devcard_vp_count": 5,
-  "devcard_yop_count": 2,
-  "devcard_monopoly_count": 2,
-  "devcard_road_count": 2,
-  "special_build_phase": false
+  "devcard_yop_count": 3,
+  "devcard_monopoly_count": 3,
+  "devcard_road_count": 3,
+  "special_build_phase": true
 }

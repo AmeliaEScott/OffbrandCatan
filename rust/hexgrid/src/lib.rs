@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
 use hex_coordinates::{HexCoord, Tile, Edge, Corner};
 
-#[derive(Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct HexGrid<T, E, C> {
     pub tiles: HashMap<Tile, T>,
     pub edges: HashMap<Edge, E>,

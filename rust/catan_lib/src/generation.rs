@@ -3,6 +3,7 @@ use super::types::{Tile, TileType, Resource};
 use super::configuration;
 use super::GameGrid;
 use rand::prelude::*;
+use rand;
 
 pub fn generate_tiles(config: &configuration::MapGenerationSettings) -> Result<GameGrid, ()> {
     let mut grid = GameGrid::new();
@@ -20,7 +21,7 @@ pub fn generate_tiles(config: &configuration::MapGenerationSettings) -> Result<G
     (0 .. config.desert_count).for_each(|_| tiles.push(TileType::Desert));
     (0 .. config.ocean_count).for_each(|_| tiles.push(TileType::Ocean));
 
-    let mut rng = thread_rng();
+    let mut rng = rand::rngs::OsRng;
     tiles.shuffle(&mut rng);
 
     let result = recurse_tiles(

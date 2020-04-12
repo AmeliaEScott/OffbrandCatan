@@ -78,8 +78,8 @@ macro_rules! impl_serde_for_hexcoord {
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct Tile {
-    x: i32,
-    y: i32
+    pub x: i32,
+    pub y: i32
 }
 
 impl Tile {
@@ -137,27 +137,27 @@ impl HexCoord for Tile {
 impl_serde_for_hexcoord!(Tile);
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
-enum CornerDir {
+pub enum CanonicalCornerDir {
     North,
     Northeast
 }
 
-impl fmt::Display for CornerDir {
+impl fmt::Display for CanonicalCornerDir {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            CornerDir::North => write!(f, "CornerNorth"),
-            CornerDir::Northeast => write!(f, "CornerNortheast"),
+            CanonicalCornerDir::North => write!(f, "CornerNorth"),
+            CanonicalCornerDir::Northeast => write!(f, "CornerNortheast"),
         }
     }
 }
 
-impl FromStr for CornerDir {
+impl FromStr for CanonicalCornerDir {
     type Err = String; // TODO: Implement a proper error type
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "CornerNorth" => Ok(CornerDir::North),
-            "CornerNortheast" => Ok(CornerDir::Northeast),
+            "CornerNorth" => Ok(CanonicalCornerDir::North),
+            "CornerNortheast" => Ok(CanonicalCornerDir::Northeast),
             _ => Err(format!("'{}' is not a valid type for CornerDir", s))
         }
     }
@@ -165,26 +165,26 @@ impl FromStr for CornerDir {
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct Corner {
-    x: i32,
-    y: i32,
-    dir: CornerDir
+    pub x: i32,
+    pub y: i32,
+    dir: CanonicalCornerDir
 }
 
 impl Corner {
     pub fn new(x: i32, y: i32, dir: CornerDirection) -> Corner {
         match dir {
             CornerDirection::Northwest =>
-                Corner { x: x - 1, y, dir: CornerDir::Northeast },
+                Corner { x: x - 1, y, dir: CanonicalCornerDir::Northeast },
             CornerDirection::North =>
-                Corner { x, y, dir: CornerDir::North },
+                Corner { x, y, dir: CanonicalCornerDir::North },
             CornerDirection::Northeast =>
-                Corner { x, y, dir: CornerDir::Northeast },
+                Corner { x, y, dir: CanonicalCornerDir::Northeast },
             CornerDirection::Southeast =>
-                Corner { x: x + 1, y: y - 1, dir: CornerDir::North },
+                Corner { x: x + 1, y: y - 1, dir: CanonicalCornerDir::North },
             CornerDirection::South =>
-                Corner { x, y: y - 1, dir: CornerDir::Northeast },
+                Corner { x, y: y - 1, dir: CanonicalCornerDir::Northeast },
             CornerDirection::Southwest =>
-                Corner { x, y: y - 1, dir: CornerDir::North },
+                Corner { x, y: y - 1, dir: CanonicalCornerDir::North },
         }
     }
 }
@@ -195,18 +195,18 @@ impl HexCoord for Corner {
     }
 
     fn new(x: i32, y: i32, label: &str) -> Result<Self, String> {
-        let dir = CornerDir::from_str(label)?;
+        let dir = CanonicalCornerDir::from_str(label)?;
         Ok(Corner{x, y, dir})
     }
 
     fn get_tile_neighbors(&self) -> Vec<Tile> {
         match self.dir {
-            CornerDir::North => vec![
+            CanonicalCornerDir::North => vec![
                 Tile::new(self.x, self.y),
                 Tile::new(self.x - 1, self.y + 1),
                 Tile::new(self.x, self.y + 1)
             ],
-            CornerDir::Northeast => vec![
+            CanonicalCornerDir::Northeast => vec![
                 Tile::new(self.x, self.y),
                 Tile::new(self.x, self.y + 1),
                 Tile::new(self.x + 1, self.y)
@@ -216,12 +216,12 @@ impl HexCoord for Corner {
 
     fn get_edge_neighbors(&self) -> Vec<Edge> {
         match self.dir {
-            CornerDir::North => vec![
+            CanonicalCornerDir::North => vec![
                 Edge::new(self.x, self.y, EdgeDirection::Northwest),
                 Edge::new(self.x, self.y, EdgeDirection::Northeast),
                 Edge::new(self.x - 1, self.y + 1, EdgeDirection::East),
             ],
-            CornerDir::Northeast => vec![
+            CanonicalCornerDir::Northeast => vec![
                 Edge::new(self.x, self.y, EdgeDirection::Northeast),
                 Edge::new(self.x, self.y, EdgeDirection::East),
                 Edge::new(self.x + 1, self.y, EdgeDirection::Northwest),
@@ -231,12 +231,12 @@ impl HexCoord for Corner {
 
     fn get_corner_neighbors(&self) -> Vec<Corner> {
         match self.dir {
-            CornerDir::North => vec![
+            CanonicalCornerDir::North => vec![
                 Corner::new(self.x, self.y, CornerDirection::Northwest),
                 Corner::new(self.x, self.y, CornerDirection::Northeast),
                 Corner::new(self.x, self.y + 1, CornerDirection::Northwest),
             ],
-            CornerDir::Northeast => vec![
+            CanonicalCornerDir::Northeast => vec![
                 Corner::new(self.x, self.y, CornerDirection::North),
                 Corner::new(self.x, self.y, CornerDirection::Southeast),
                 Corner::new(self.x + 1, self.y, CornerDirection::North),
@@ -248,30 +248,30 @@ impl HexCoord for Corner {
 impl_serde_for_hexcoord!(Edge);
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
-enum EdgeDir {
+pub enum CanonicalEdgeDir {
     Northwest,
     Northeast,
     East
 }
 
-impl fmt::Display for EdgeDir {
+impl fmt::Display for CanonicalEdgeDir {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            EdgeDir::Northwest => write!(f, "EdgeNorthwest"),
-            EdgeDir::Northeast => write!(f, "EdgeNortheast"),
-            EdgeDir::East => write!(f, "EdgeEast"),
+            CanonicalEdgeDir::Northwest => write!(f, "EdgeNorthwest"),
+            CanonicalEdgeDir::Northeast => write!(f, "EdgeNortheast"),
+            CanonicalEdgeDir::East => write!(f, "EdgeEast"),
         }
     }
 }
 
-impl FromStr for EdgeDir {
+impl FromStr for CanonicalEdgeDir {
     type Err = String; // TODO: Implement a proper error type
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "EdgeNorthwest" => Ok(EdgeDir::Northwest),
-            "EdgeNortheast" => Ok(EdgeDir::Northeast),
-            "EdgeEast" => Ok(EdgeDir::East),
+            "EdgeNorthwest" => Ok(CanonicalEdgeDir::Northwest),
+            "EdgeNortheast" => Ok(CanonicalEdgeDir::Northeast),
+            "EdgeEast" => Ok(CanonicalEdgeDir::East),
             _ => Err(format!("'{}' is not a valid type for EdgeDir", s))
         }
     }
@@ -279,26 +279,26 @@ impl FromStr for EdgeDir {
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct Edge {
-    x: i32,
-    y: i32,
-    dir: EdgeDir
+    pub x: i32,
+    pub y: i32,
+    pub dir: CanonicalEdgeDir
 }
 
 impl Edge {
     pub fn new(x: i32, y: i32, dir: EdgeDirection) -> Edge {
         match dir {
             EdgeDirection::Northwest =>
-                Edge { x, y, dir: EdgeDir::Northwest },
+                Edge { x, y, dir: CanonicalEdgeDir::Northwest },
             EdgeDirection::Northeast =>
-                Edge { x, y, dir: EdgeDir::Northeast },
+                Edge { x, y, dir: CanonicalEdgeDir::Northeast },
             EdgeDirection::East =>
-                Edge { x, y, dir: EdgeDir::East },
+                Edge { x, y, dir: CanonicalEdgeDir::East },
             EdgeDirection::Southeast =>
-                Edge { x: x + 1, y: y - 1, dir: EdgeDir::Northwest },
+                Edge { x: x + 1, y: y - 1, dir: CanonicalEdgeDir::Northwest },
             EdgeDirection::Southwest =>
-                Edge { x, y: y - 1, dir: EdgeDir::Northeast },
+                Edge { x, y: y - 1, dir: CanonicalEdgeDir::Northeast },
             EdgeDirection::West =>
-                Edge { x: x - 1, y, dir: EdgeDir::East },
+                Edge { x: x - 1, y, dir: CanonicalEdgeDir::East },
         }
     }
 }
@@ -309,21 +309,21 @@ impl HexCoord for Edge {
     }
 
     fn new(x: i32, y: i32, label: &str) -> Result<Self, String> {
-        let dir = EdgeDir::from_str(label)?;
+        let dir = CanonicalEdgeDir::from_str(label)?;
         Ok(Edge{x, y, dir})
     }
 
     fn get_tile_neighbors(&self) -> Vec<Tile> {
         match self.dir {
-            EdgeDir::Northwest => vec![
+            CanonicalEdgeDir::Northwest => vec![
                 Tile::new(self.x, self.y),
                 Tile::new(self.x - 1, self.y + 1)
             ],
-            EdgeDir::Northeast => vec![
+            CanonicalEdgeDir::Northeast => vec![
                 Tile::new(self.x, self.y),
                 Tile::new(self.x, self.y + 1)
             ],
-            EdgeDir::East => vec![
+            CanonicalEdgeDir::East => vec![
                 Tile::new(self.x, self.y),
                 Tile::new(self.x + 1, self.y)
             ],
@@ -332,19 +332,19 @@ impl HexCoord for Edge {
 
     fn get_edge_neighbors(&self) -> Vec<Edge> {
         match self.dir {
-            EdgeDir::Northwest => vec![
+            CanonicalEdgeDir::Northwest => vec![
                 Edge::new(self.x, self.y, EdgeDirection::West),
                 Edge::new(self.x, self.y, EdgeDirection::Northeast),
                 Edge::new(self.x - 1, self.y + 1, EdgeDirection::Southwest),
                 Edge::new(self.x - 1, self.y + 1, EdgeDirection::East),
             ],
-            EdgeDir::Northeast => vec![
+            CanonicalEdgeDir::Northeast => vec![
                 Edge::new(self.x, self.y, EdgeDirection::Northwest),
                 Edge::new(self.x, self.y, EdgeDirection::East),
                 Edge::new(self.x, self.y + 1, EdgeDirection::West),
                 Edge::new(self.x, self.y + 1, EdgeDirection::Southeast),
             ],
-            EdgeDir::East => vec![
+            CanonicalEdgeDir::East => vec![
                 Edge::new(self.x, self.y, EdgeDirection::Northeast),
                 Edge::new(self.x, self.y, EdgeDirection::Southeast),
                 Edge::new(self.x + 1, self.y, EdgeDirection::Northwest),
@@ -355,15 +355,15 @@ impl HexCoord for Edge {
 
     fn get_corner_neighbors(&self) -> Vec<Corner> {
         match self.dir {
-            EdgeDir::Northwest => vec![
+            CanonicalEdgeDir::Northwest => vec![
                 Corner::new(self.x, self.y, CornerDirection::Northwest),
                 Corner::new(self.x, self.y, CornerDirection::North),
             ],
-            EdgeDir::Northeast => vec![
+            CanonicalEdgeDir::Northeast => vec![
                 Corner::new(self.x, self.y, CornerDirection::North),
                 Corner::new(self.x, self.y, CornerDirection::Northeast),
             ],
-            EdgeDir::East => vec![
+            CanonicalEdgeDir::East => vec![
                 Corner::new(self.x, self.y, CornerDirection::Northeast),
                 Corner::new(self.x, self.y, CornerDirection::Southeast),
             ],

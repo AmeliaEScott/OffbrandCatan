@@ -10,4 +10,5 @@ edition = "2018"
 hexgrid = {path = "../hexgrid"}
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-rand = "0.7"
+getrandom = { version = "*", features = ["wasm-bindgen"] }
+rand = {version = "0.7", features = ["getrandom"] }

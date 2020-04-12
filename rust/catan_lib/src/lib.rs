@@ -9,11 +9,11 @@ use serde::{Serialize, Deserialize};
 pub type GameID = u64;
 pub type GameGrid = HexGrid<types::Tile, types::Edge, types::Corner>;
 
-#[derive(Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Eq, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Game {
-    id: GameID,
-    players: Vec<player::Player>,
-    rules: configuration::Rules,
-    grid: GameGrid,
-    development_cards: Vec<types::DevelopmentCard>
+    pub id: GameID,
+    pub players: Vec<player::Player>,
+    pub rules: configuration::Rules,
+    pub grid: GameGrid,
+    pub development_cards: Vec<types::DevelopmentCard>
 }
