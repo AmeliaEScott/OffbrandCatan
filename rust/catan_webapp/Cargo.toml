@@ -1,0 +1,14 @@
+[package]
+name = "catan_webapp"
+version = "0.1.0"
+authors = ["Timmy <timjimski@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+wasm-bindgen = "^0.2"
+#yew = { version = "0.14", features = ["web_sys"] }
+yew = { version = "0.12" }
