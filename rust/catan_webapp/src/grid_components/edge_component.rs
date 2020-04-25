@@ -66,8 +66,12 @@ impl Component for Edge {
         let screen_y = -(self.coords.y as f32) * (std::f32::consts::PI / 3.0).sin();
         let transform = format!("translate({:.5} {:.5}) {}", screen_x, screen_y, edge_transform);
 
-        html! {
+        let color = format!("#{:06X}", self.color);
 
+        html! {
+            <g transform={transform}>
+                <rect x="0.3" y="0.552" width="0.4" height="0.05" fill={color}/>
+            </g>
         }
     }
 }

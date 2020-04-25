@@ -72,35 +72,78 @@ impl Component for Tile {
               onclick=callback />
         };
 
-        let number_color = if self.tile.number == Some(6) || self.tile.number == Some(8) {
-            "#D01010"
-        } else {
-            "#000000"
-        };
-        let number_style = format!("fill: {}", number_color);
-
-        let number_html = if let Some(i) = self.tile.number {
-            html! {
-                <>
-                    <circle cx="0.5" cy="0.577" r="0.1" fill="#D0D0D0"
-                        stroke-width="0.01" stroke="#000000"></circle>
-                    <text text-anchor="middle" font-family="Serif" alignment-baseline="middle"
-                        font-size="0.1" x="0.5" y="0.585" style={number_style}>{i}</text>
-                </>
-            }
+        let number_html = if let Some(number) = self.tile.number {
+            self.view_number(number)
         } else {
             html! {}
         };
 
-
         html! {
         <g transform={ transform }>
-
             {image_html}
-
             {number_html}
-
         </g>
+        }
+    }
+}
+
+impl Tile {
+    fn view_number(&self, number: i32) -> Html {
+        let dot_y = 0.625;
+        let dot_spacing = 0.022;
+        let dot_r = 0.007;
+        let text_y = 0.58;
+        let dot_x = match number {
+            6 | 8 => vec![
+                0.5 - 2.0 * dot_spacing,
+                0.5 - dot_spacing,
+                0.5,
+                0.5 + dot_spacing,
+                0.5 + 2.0 * dot_spacing
+            ],
+            5 | 9 => vec![
+                0.5 - 1.5 * dot_spacing,
+                0.5 - 0.5 * dot_spacing,
+                0.5 + 0.5 * dot_spacing,
+                0.5 + 1.5 * dot_spacing
+            ],
+            4 | 10 => vec![
+                0.5 - dot_spacing,
+                0.5,
+                0.5 + dot_spacing,
+            ],
+            3 | 11 => vec![
+                0.5 - 0.5 * dot_spacing,
+                0.5 + 0.5 * dot_spacing,
+            ],
+            2 | 12 => vec![
+                0.5
+            ],
+            _ => vec![]
+        };
+
+        let number_color = if number == 6 || number == 8 {
+            "#D01010"
+        } else {
+            "#000000"
+        };
+
+        let dots: Vec<_> = dot_x.into_iter().map(|x| {
+            html! {
+                <circle cx={x} cy={dot_y} r={dot_r} fill={number_color} stroke-width="0" />
+            }
+        }).collect();
+
+        let number_style = format!("fill: {}", number_color);
+
+        html! {
+            <>
+                <circle cx="0.5" cy="0.577" r="0.1" fill="#D0D0D0"
+                    stroke-width="0.01" stroke="#000000"></circle>
+                <text text-anchor="middle" font-family="Serif" alignment-baseline="middle"
+                    font-size="0.1" x="0.5" y="0.58" style={number_style}>{number}</text>
+                {for dots}
+            </>
         }
     }
 }

@@ -1,3 +1,5 @@
+#![recursion_limit="256"]
+
 use wasm_bindgen::prelude::*;
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
 use catan_lib::{Game, types, configuration};
@@ -65,13 +67,7 @@ pub fn run_app() -> Result<(), JsValue> {
 
     //yew::start_app::<App>();
     yew::start_app_with_props::<game_component::GameComponent>(game_component::GameProps {
-        game: Game {
-            id: 0,
-            players: vec![],
-            rules: configuration::Rules::defaults_vanilla(),
-            grid: catan_lib::GameGrid::new(),
-            development_cards: vec![]
-        }
+        game: Game::generate_demo()
     });
 
     Ok(())

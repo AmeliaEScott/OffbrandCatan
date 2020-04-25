@@ -167,7 +167,7 @@ impl FromStr for CanonicalCornerDir {
 pub struct Corner {
     pub x: i32,
     pub y: i32,
-    dir: CanonicalCornerDir
+    pub dir: CanonicalCornerDir
 }
 
 impl Corner {

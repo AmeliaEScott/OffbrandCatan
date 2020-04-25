@@ -85,7 +85,7 @@ pub enum Settlement {
 /// I made this a struct because I might add more fields in the future.
 #[derive(Debug, Eq, PartialEq, Hash, Copy, Clone, Serialize, Deserialize)]
 pub struct Corner {
-    settlement: Settlement
+    pub settlement: Settlement
 }
 
 #[derive(Debug, Eq, PartialEq, Hash, Copy, Clone, Serialize, Deserialize)]
