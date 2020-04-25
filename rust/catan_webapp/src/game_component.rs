@@ -3,11 +3,10 @@ use catan_lib::{Game, types, generation, configuration};
 use serde_json;
 use super::grid_components::GridComponent;
 use log::debug;
-use std::rc::Rc;
 
 pub struct GameComponent {
     link: ComponentLink<Self>,
-    game: Rc<Game>
+    game: Game
 }
 
 #[derive(Properties, PartialEq, Clone)]
@@ -29,7 +28,7 @@ impl Component for GameComponent {
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
         GameComponent {
             link,
-            game: Rc::new(props.game)
+            game: props.game
         }
     }
 
@@ -41,7 +40,8 @@ impl Component for GameComponent {
             GameMsg::RegenSheepland => configuration::MapGenerationSettings::defaults_sheepland(),
         };
 
-        let new_grid = generation::generate_tiles(&config).unwrap();
+        let mut new_grid = generation::generate_tiles(&config).unwrap();
+        generation::generate_numbers(&config, &mut new_grid).unwrap();
         debug!("New grid has {} tiles", new_grid.tiles.len());
         self.game.grid = new_grid;
         true
@@ -62,7 +62,7 @@ impl Component for GameComponent {
             <button onclick=callback_vanilla56>{"Regenerate Vanilla56"}</button><br />
             <button onclick=callback_seafarers>{"Regenerate Seafarers"}</button><br />
             <button onclick=callback_sheepland>{"Regenerate the good map"}</button><br />
-            <GridComponent game=Rc::clone(&self.game) />
+            <GridComponent grid=self.game.grid.clone() player_colors=self.game.get_player_colors() />
         </>
         }
     }

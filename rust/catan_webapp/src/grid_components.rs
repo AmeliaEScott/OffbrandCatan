@@ -1,20 +1,22 @@
 pub mod tile_component;
-//pub mod edge_component;
+pub mod edge_component;
 
 use yew::prelude::*;
-use catan_lib::{Game, GameGrid, types, configuration};
+use catan_lib::{Game, GameGrid, types, configuration, player};
 use tile_component::Tile;
 use log::debug;
-use std::rc::Rc;
+use std::collections::HashMap;
 
 pub struct GridComponent {
     link: ComponentLink<Self>,
-    game: Rc<Game>,
+    grid: GameGrid,
+    player_colors: HashMap<player::PlayerID, player::PlayerColor>
 }
 
 #[derive(Properties, PartialEq, Clone)]
 pub struct GridComponentProps {
-    pub game: Rc<Game>
+    pub grid: GameGrid,
+    pub player_colors: HashMap<player::PlayerID, player::PlayerColor>
 }
 
 impl Component for GridComponent {
@@ -24,7 +26,8 @@ impl Component for GridComponent {
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
         GridComponent {
             link,
-            game: Rc::clone(&props.game)
+            grid: props.grid,
+            player_colors: props.player_colors
         }
     }
 
@@ -33,22 +36,22 @@ impl Component for GridComponent {
     }
 
     fn change(&mut self, props: Self::Properties) -> bool {
-        self.game = Rc::clone(&props.game);
+        self.grid = props.grid;
+        self.player_colors = props.player_colors;
         true
     }
 
     fn view(&self) -> Html {
-        let tiles = self.game.grid.tiles.iter().map(|(c, d)| {
+        let tiles = self.grid.tiles.iter().map(|(c, d)| {
             debug!("debug!");
             html! {
-                <tile_component::TileComponent coords={c} game=Rc::clone(&self.game) />
+                <tile_component::Tile coords={c} tile={d} />
             }
         });
 
-        debug!("Rendering GridComponent with {} tiles", self.game.grid.tiles.len());
+        debug!("Rendering GridComponent with {} tiles", self.grid.tiles.len());
 
         html! {
-        // xmlns:xlink="http://www.w3.org/1999/xlink"
         <svg xmlns="http://www.w3.org/2000/svg"  id="gameboard" width="600px" height="600px"
              viewBox="0 0 10 10" preserveAspectRatio="xMidYMid meet" version="1.2">
             <defs>

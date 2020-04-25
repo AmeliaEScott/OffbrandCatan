@@ -3,19 +3,17 @@ use catan_lib::{Game, types, types::TileType, types::Resource, generation, confi
 use hexgrid::hex_coordinates;
 use serde_json;
 use log::debug;
-use std::rc::Rc;
 
 pub struct Tile {
     link: ComponentLink<Self>,
     coords: hex_coordinates::Tile,
     tile: types::Tile,
-    game: Rc<Game>
 }
 
 #[derive(Properties, PartialEq, Clone)]
 pub struct Props {
     pub coords: hex_coordinates::Tile,
-    pub game: Rc<Game>
+    pub tile: types::Tile
 }
 
 pub enum Msg {
@@ -30,7 +28,7 @@ impl Component for Tile {
         Tile {
             link,
             coords: props.coords,
-            game: props.game
+            tile: props.tile
         }
     }
 
@@ -45,7 +43,7 @@ impl Component for Tile {
 
     fn change(&mut self, props: Self::Properties) -> bool {
         self.coords = props.coords;
-        self.game = Rc::clone(&props.game);
+        self.tile = props.tile;
         true
     }
 
@@ -53,7 +51,7 @@ impl Component for Tile {
 
         debug!("Rendering tile component");
 
-        let href = match self.game.grid.tiles.get(&self.coords).tile_type {
+        let href = match self.tile.tile_type {
             TileType::Resource(Resource::Wheat) => "/static/images/hex_wheat.png",
             TileType::Resource(Resource::Wood) => "/static/images/hex_wood.png",
             TileType::Resource(Resource::Sheep) => "/static/images/hex_sheep.png",
@@ -67,13 +65,41 @@ impl Component for Tile {
         let screen_x = (self.coords.x as f32) + (self.coords.y as f32) / 2.0;
         let screen_y = -(self.coords.y as f32) * (std::f32::consts::PI / 3.0).sin();
         let transform = format!("translate({:.5} {:.5})", screen_x, screen_y);
-
         let callback = self.link.callback(|_| Msg::Click);
+
+        let image_html = html! {
+            <image x="0" y="0" width="1" height="1.155" href={ href } clip-path="url(#hex-clip)"
+              onclick=callback />
+        };
+
+        let number_color = if self.tile.number == Some(6) || self.tile.number == Some(8) {
+            "#D01010"
+        } else {
+            "#000000"
+        };
+        let number_style = format!("fill: {}", number_color);
+
+        let number_html = if let Some(i) = self.tile.number {
+            html! {
+                <>
+                    <circle cx="0.5" cy="0.577" r="0.1" fill="#D0D0D0"
+                        stroke-width="0.01" stroke="#000000"></circle>
+                    <text text-anchor="middle" font-family="Serif" alignment-baseline="middle"
+                        font-size="0.1" x="0.5" y="0.585" style={number_style}>{i}</text>
+                </>
+            }
+        } else {
+            html! {}
+        };
+
 
         html! {
         <g transform={ transform }>
-            <image x="0" y="0" width="1" height="1.155" href={ href } clip-path="url(#hex-clip)"
-              onclick=callback />
+
+            {image_html}
+
+            {number_html}
+
         </g>
         }
     }

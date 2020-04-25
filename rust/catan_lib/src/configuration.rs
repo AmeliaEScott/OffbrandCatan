@@ -94,12 +94,13 @@ pub struct MapGenerationSettings {
     // These constraints only apply to corners with three adjacent tiles that aren't deserts or oceans.
     // These constraints are intended to make sure the numbers are evenly distributed, with no clumps of excessively
     // high or low probability.
-    pub min_corner_score: u32,
-    pub max_corner_score: u32,
+    pub min_corner_score: i32,
+    pub max_corner_score: i32,
     /// If true, then prevent generating two adjacent tiles of the same type (except for oceans)
     pub avoid_adjacent: bool,
     /// List of all valid tile coordinates in the game.
-    pub coords: Vec<hex_coordinates::Tile>
+    pub coords: Vec<hex_coordinates::Tile>,
+    pub numbers: Vec<i32>,
 }
 
 impl MapGenerationSettings {
