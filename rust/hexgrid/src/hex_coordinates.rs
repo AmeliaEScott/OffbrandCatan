@@ -30,6 +30,8 @@ pub trait HexCoord: fmt::Display + FromStr {
     fn get_tile_neighbors(&self) -> Vec<Tile>;
     fn get_edge_neighbors(&self) -> Vec<Edge>;
     fn get_corner_neighbors(&self) -> Vec<Corner>;
+
+    fn to_cartesian(&self) -> (f64, f64);
 }
 
 macro_rules! impl_serde_for_hexcoord {
@@ -131,6 +133,13 @@ impl HexCoord for Tile {
             Corner::new(self.x, self.y, CornerDirection::Southwest),
             Corner::new(self.x, self.y, CornerDirection::South),
         ]
+    }
+
+    fn to_cartesian(&self) -> (f64, f64) {
+        const SIN_PI_3: f64 = 0.86602540378;  // sin(pi / 3)
+        let cart_x = (self.x as f64) + (self.y as f64) / 2.0;
+        let cart_y = -(self.y as f64) * SIN_PI_3;
+        (cart_x, cart_y)
     }
 }
 
@@ -242,6 +251,19 @@ impl HexCoord for Corner {
                 Corner::new(self.x + 1, self.y, CornerDirection::North),
             ],
         }
+    }
+
+    fn to_cartesian(&self) -> (f64, f64) {
+        let (mut mean_x, mut mean_y) = (0.0, 0.0);
+        self.get_tile_neighbors()
+            .into_iter()
+            .map(|t| t.to_cartesian())
+            .for_each(|(x, y)|{
+                mean_x += x;
+                mean_y += y;
+            });
+
+        (mean_x / 3.0, mean_y / 3.0)
     }
 }
 
@@ -368,6 +390,19 @@ impl HexCoord for Edge {
                 Corner::new(self.x, self.y, CornerDirection::Southeast),
             ],
         }
+    }
+
+    fn to_cartesian(&self) -> (f64, f64) {
+        let (mut mean_x, mut mean_y) = (0.0, 0.0);
+        self.get_tile_neighbors()
+            .into_iter()
+            .map(|t| t.to_cartesian())
+            .for_each(|(x, y)|{
+                mean_x += x;
+                mean_y += y;
+            });
+
+        (mean_x / 2.0, mean_y / 2.0)
     }
 }
 

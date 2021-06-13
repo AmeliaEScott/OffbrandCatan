@@ -8,12 +8,14 @@ pub struct Tile {
     link: ComponentLink<Self>,
     coords: hex_coordinates::Tile,
     tile: types::Tile,
+    callback: Callback<hex_coordinates::Tile>,
 }
 
 #[derive(Properties, PartialEq, Clone)]
 pub struct Props {
     pub coords: hex_coordinates::Tile,
-    pub tile: types::Tile
+    pub tile: types::Tile,
+    pub callback: Callback<hex_coordinates::Tile>,
 }
 
 pub enum Msg {
@@ -28,7 +30,8 @@ impl Component for Tile {
         Tile {
             link,
             coords: props.coords,
-            tile: props.tile
+            tile: props.tile,
+            callback: props.callback,
         }
     }
 
@@ -36,15 +39,18 @@ impl Component for Tile {
         match msg {
             Msg::Click => {
                 debug!("Clicked on tile {}", self.coords);
+                self.callback.emit(self.coords);
                 false
             }
         }
     }
 
-    fn change(&mut self, props: Self::Properties) -> bool {
+    fn change(&mut self, props: Self::Properties) -> ShouldRender {
+        let should_render = self.coords != props.coords || self.tile != props.tile;
         self.coords = props.coords;
         self.tile = props.tile;
-        true
+        self.callback = props.callback;
+        should_render
     }
 
     fn view(&self) -> Html {
@@ -130,7 +136,7 @@ impl Tile {
 
         let dots: Vec<_> = dot_x.into_iter().map(|x| {
             html! {
-                <circle cx={x} cy={dot_y} r={dot_r} fill={number_color} stroke-width="0" />
+                <circle cx={x.to_string()} cy={dot_y.to_string()} r={dot_r.to_string()} fill={number_color.to_string()} stroke-width="0" />
             }
         }).collect();
 
