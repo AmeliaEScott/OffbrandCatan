@@ -129,15 +129,6 @@ impl Component for MapEditorComponent {
 
         html! {
         <>
-            <div class="row">
-                <nav class="navbar navbar-dark bg-dark">
-                    <div class="container-fluid">
-                        <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#editorToolbar">
-                            <span class="navbar-toggler-icon"></span>
-                        </button>
-                    </div>
-                </nav>
-            </div>
             <div class="row flex-grow-1 min-vh-100">
                 <div class="col d-flex">
                     <svg xmlns="http://www.w3.org/2000/svg"  id="gameboard" class="img-fluid" width="100%"
